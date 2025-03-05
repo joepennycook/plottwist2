@@ -7,8 +7,8 @@
 #' @export
 #'
 #' @examples
-#' p <- ggplot(data = mtcars, aes(x = cyl, y = mpg)) +
-#'     geom_point() +
+#' p <- ggplot2::ggplot(data = mtcars, ggplot2::aes(x = cyl, y = mpg)) +
+#'     ggplot2::geom_point() +
 #'     theme_simple()
 #'
 theme_simple <- function() {

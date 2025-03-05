@@ -13,8 +13,8 @@ A 'theme' class object which can be added to a plot.
 ggplot2 theme which simplifies everything to black and white lines of uniform thickness. Text is converted to element_markdown() from the ggtext package, allowing for use of italics etc.
 }
 \examples{
-p <- ggplot(data = mtcars, aes(x = cyl, y = mpg)) +
-    geom_point() +
+p <- ggplot2::ggplot(data = mtcars, ggplot2::aes(x = cyl, y = mpg)) +
+    ggplot2::geom_point() +
     theme_simple()
 
 }
