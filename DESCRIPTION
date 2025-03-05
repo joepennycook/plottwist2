@@ -1,11 +1,10 @@
 Package: plottwist2
-Title: What the Package Does (One Line, Title Case)
+Title: Handy Functions for ggplot2
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Joseph", "Pennycook", , "joe.pennycook@hotmail.co.uk", role = c("aut", "cre"))
+Description: Several functions to speed up the creation of neat plots with ggplot2 or expand functionality. In particular, functions to allow a wider range of point shapes (symbols) or bar chart textures (patterns), reducing the reliance on colour to distinguish between groups.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
