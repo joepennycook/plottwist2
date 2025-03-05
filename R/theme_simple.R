@@ -1,3 +1,16 @@
+#' Simple Theme for ggplot2
+#' @description
+#' ggplot2 theme which simplifies everything to black and white lines of uniform thickness. Text is converted to element_markdown() from the ggtext package, allowing for use of italics etc.
+#'
+#'
+#' @returns A 'theme' class object which can be added to a plot.
+#' @export
+#'
+#' @examples
+#' p <- ggplot(data = mtcars, aes(x = cyl, y = mpg)) +
+#'     geom_point() +
+#'     theme_simple()
+#'
 theme_simple <- function() {
   ggplot2::theme(axis.title = ggtext::element_markdown(),
         axis.text = ggtext::element_markdown(),
