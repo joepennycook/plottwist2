@@ -11,3 +11,6 @@ RoxygenNote: 7.3.2
 Imports: 
     ggplot2,
     ggtext
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
