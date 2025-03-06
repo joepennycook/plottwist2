@@ -3,3 +3,4 @@
 export(geom_symbol)
 export(theme_simple)
 import(ggplot2)
+import(grid)

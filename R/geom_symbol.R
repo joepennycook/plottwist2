@@ -6,6 +6,7 @@
 #'
 #' @returns
 #' @import ggplot2
+#' @import grid
 #' @export
 #'
 #' @examples
