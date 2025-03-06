@@ -54,8 +54,8 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                required_aes = c("x", "y"),
                                non_missing_aes = c("size", "symbol", "colour"),
                                default_aes = aes(
-                                 symbol = 1, colour = "black", size = 1, fill = NA,
-                                 alpha = NA, stroke = 0.5),
+                                 symbol = 1, colour = "black", size = 1.5, fill = NA,
+                                 alpha = NA, stroke = 1.42),
 
                                # the function to draw symbols placed according to 'x', 'y', and 'symbol' aesthetics
                                draw_panel = function(self, data, panel_params, coord, na.rm = FALSE) {
