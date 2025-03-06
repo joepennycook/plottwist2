@@ -1,3 +1,14 @@
+#' Points with a Wider Variety of Shapes
+#'
+#' The symbol geom is used for the same purposes as [geom_point()], but with more flexibility in the shapes of the points.
+#'
+#' @inheritParams ggplot2::geom_point
+#'
+#' @returns
+#' @import ggplot2
+#' @export
+#'
+#' @examples
 geom_symbol <- function(mapping = NULL, data = NULL,
                         stat = "identity", position = "identity",
                         ...,
