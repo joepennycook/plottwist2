@@ -12,6 +12,7 @@ Imports:
     ggplot2,
     ggtext,
     grid,
+    rlang,
     vdiffr
 Suggests: 
     testthat (>= 3.0.0)

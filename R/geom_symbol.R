@@ -7,6 +7,7 @@
 #' @returns
 #' @import ggplot2
 #' @import grid
+#' @import rlang
 #' @export
 #'
 #' @examples
