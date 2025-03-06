@@ -15,7 +15,7 @@ theme_simple <- function() {
   ggplot2::theme(axis.title = ggtext::element_markdown(),
         axis.text = ggtext::element_markdown(colour = "black"),
         strip.text = ggtext::element_markdown(),
-        legend.title = ggtext::element_markdown(),
+        legend.title = ggtext::element_markdown(hjust = 0.5),
         legend.text = ggtext::element_markdown(),
         axis.line = ggplot2::element_blank(),
         strip.background = ggplot2::element_blank(),
@@ -27,6 +27,5 @@ theme_simple <- function() {
                                                  colour = "black",
                                                  linewidth = 1),
         axis.ticks = ggplot2::element_line(linewidth = 0.5,
-                                           colour = "black"),
-        legend.title.align = 0.5)
+                                           colour = "black"))
 }
