@@ -13,7 +13,7 @@
 #'
 theme_simple <- function() {
   ggplot2::theme(axis.title = ggtext::element_markdown(),
-        axis.text = ggtext::element_markdown(),
+        axis.text = ggtext::element_markdown(colour = "black"),
         strip.text = ggtext::element_markdown(),
         legend.title = ggtext::element_markdown(),
         legend.text = ggtext::element_markdown(),
@@ -26,5 +26,7 @@ theme_simple <- function() {
         panel.background = ggplot2::element_rect(fill = "white",
                                                  colour = "black",
                                                  linewidth = 1),
+        axis.ticks = ggplot2::element_line(linewidth = 0.5,
+                                           colour = "black"),
         legend.title.align = 0.5)
 }
