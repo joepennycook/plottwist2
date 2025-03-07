@@ -78,7 +78,7 @@ drawDetails.patch <- function(x, ...) {
                gp = gpar(fill = "#00000000"))
 }
 
-data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
+data_frame0 <- function(...) vctrs::data_frame(..., .name_repair = "minimal")
 
 rect_to_poly <- function(xmin, xmax, ymin, ymax) {
   data_frame0(
