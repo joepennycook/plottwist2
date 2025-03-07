@@ -41,5 +41,6 @@ library(plottwist2)
 
 ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length)) +
   geom_symbol(aes(symbol = Species)) +
+  scale_symbol_manual(values = c(12, 20, 28)) +
   theme_simple()
 ```
