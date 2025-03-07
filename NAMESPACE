@@ -2,6 +2,7 @@
 
 S3method(drawDetails,patch)
 export(geom_patch)
+export(geom_pattern)
 export(geom_symbol)
 export(patchGrob)
 export(scale_p_colour_manual)
