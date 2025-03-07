@@ -105,6 +105,18 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                draw_key = draw_key_symbol
 )
 
+
+#' Create your own discrete symbol scale
+#'
+#' @param ...
+#' @param values
+#' @param breaks
+#' @param na.value
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 scale_symbol_manual <- function (..., values, breaks = waiver(), na.value = NA) {
   manual_scale("symbol", values, breaks, ..., na.value = na.value)
 }
