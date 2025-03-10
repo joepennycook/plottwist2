@@ -40,21 +40,6 @@ geom_patch <- function(mapping = NULL, data = NULL,
   )
 }
 
-#' @export
-scale_pattern_manual <- function (..., values, breaks = waiver(), na.value = NA) {
-  manual_scale("pattern", values, breaks, ..., na.value = na.value)
-}
-
-#' @export
-scale_p_colour_manual <- function (..., values, breaks = waiver(), na.value = NA) {
-  manual_scale("p_colour", values, breaks, ..., na.value = na.value)
-}
-
-#' @export
-scale_p_linewidth_manual <- function (..., values, breaks = waiver(), na.value = NA) {
-  manual_scale("p_linewidth", values, breaks, ..., na.value = na.value)
-}
-
 draw_key_patch <- function(data, params, size) {
 
   patchGrob(xmin = unit(0.1, "npc"),
