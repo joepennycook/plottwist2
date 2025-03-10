@@ -40,22 +40,6 @@ geom_patch <- function(mapping = NULL, data = NULL,
   )
 }
 
-draw_key_patch <- function(data, params, size) {
-
-  patchGrob(xmin = unit(0.1, "npc"),
-            xmax = unit(0.9, "npc"),
-            ymin = unit(0.1, "npc"),
-            ymax = unit(0.9, "npc"),
-            pattern = data$pattern %||% 1,
-            spacing = unit(data$spacing %||% 1, "mm"),
-            p_colour = data$p_colour %||% "black",
-            p_linewidth = data$p_linewidth %||% 1,
-            fill = data$fill %||% "white",
-            gp = gpar(col = data$colour %||% "black",
-                      lwd = data$linewidth %||% 1.42,
-                      lty = data$linetype %||% 1))
-}
-
 GeomPatch <- ggproto("GeomPatch", Geom,
                      default_aes = aes(colour = "black", fill = "white", linewidth = 1.42, linetype = 1,
                                        alpha = NA, pattern = 1, spacing = 1, p_colour = "black", p_linewidth = 1.42),

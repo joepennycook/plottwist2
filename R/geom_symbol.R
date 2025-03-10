@@ -32,25 +32,6 @@ geom_symbol <- function(mapping = NULL, data = NULL,
   )
 }
 
-draw_key_symbol <- function(data, params, size) {
-  symbol_recipe <- symbol_recipes[[data$symbol]]
-  if (head(symbol_recipe$x, 1) == tail(symbol_recipe$x, 1) &
-      head(symbol_recipe$y, 1) == tail(symbol_recipe$y, 1)) {
-    geom_output <- polygonGrob(x = unit(0.5, "npc") + unit(symbol_recipe$x * data$size, "mm"),
-                               y = unit(0.5, "npc") + unit(symbol_recipe$y * data$size, "mm"),
-                               gp = gpar(col = alpha(data$colour %||% "black", data$alpha),
-                                         fill = alpha(data$fill %||% "black", data$alpha),
-                                         lwd = data$stroke %||% 0.5))
-  } else {
-    geom_output <- polylineGrob(x = unit(0.5, "npc") + unit(symbol_recipe$x * data$size, "mm"),
-                                y = unit(0.5, "npc") + unit(symbol_recipe$y * data$size, "mm"),
-                                id = symbol_recipe$poly,
-                                gp = gpar(col = alpha(data$colour %||% "black", data$alpha),
-                                          lwd = data$stroke %||% 0.5))
-  }
-  geom_output
-}
-
 GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                required_aes = c("x", "y"),
                                non_missing_aes = c("size", "symbol", "colour"),
