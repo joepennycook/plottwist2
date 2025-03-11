@@ -11,29 +11,33 @@
 #' ggplot2::ggplot(data = iris,
 #' ggplot2::aes(x = Sepal.Length,
 #'              y = Petal.Length)) +
-#'  geom_symbol(aes(symbol = Species)) +
+#'  geom_symbol(ggplot2::aes(symbol = Species)) +
 #'  scale_symbol_manual(values = c(3, 1, 8))
 #'
 
 #' @rdname scale_manual_plottwist2
+#' @import ggplot2
 #' @export
 scale_symbol_manual <- function (..., values, breaks = waiver(), na.value = NA) {
   manual_scale("symbol", values, breaks, ..., na.value = na.value)
 }
 
 #' @rdname scale_manual_plottwist2
+#' @import ggplot2
 #' @export
 scale_pattern_manual <- function (..., values, breaks = waiver(), na.value = NA) {
   manual_scale("pattern", values, breaks, ..., na.value = na.value)
 }
 
 #' @rdname scale_manual_plottwist2
+#' @import ggplot2
 #' @export
 scale_p_colour_manual <- function (..., values, breaks = waiver(), na.value = NA) {
   manual_scale("p_colour", values, breaks, ..., na.value = na.value)
 }
 
 #' @rdname scale_manual_plottwist2
+#' @import ggplot2
 #' @export
 scale_p_linewidth_manual <- function (..., values, breaks = waiver(), na.value = NA) {
   manual_scale("p_linewidth", values, breaks, ..., na.value = na.value)

@@ -83,7 +83,7 @@ of the scale_manual_x functions in ggplot2.
 ggplot2::ggplot(data = iris,
 ggplot2::aes(x = Sepal.Length,
              y = Petal.Length)) +
- geom_symbol(aes(symbol = Species)) +
+ geom_symbol(ggplot2::aes(symbol = Species)) +
  scale_symbol_manual(values = c(3, 1, 8))
 
 }
