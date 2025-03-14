@@ -42,7 +42,7 @@ symbol_recipe_to_list <- function(recipe) {
     stop("input is not a symbol recipe.")
   }
 
-  list("x" = split_recipe[[2]],
-       "y" = split_recipe[[3]],
-       "id" = split_recipe[[4]])
+  list("x" = as.numeric(split_recipe[[2]]),
+       "y" = as.numeric(split_recipe[[3]]),
+       "id" = as.numeric(split_recipe[[4]]))
 }

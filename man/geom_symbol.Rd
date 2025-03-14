@@ -105,5 +105,9 @@ that define both data and aesthetics and shouldn't inherit behaviour from
 the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
 }
 \description{
-The symbol geom is used for the same purposes as \code{\link[=geom_point]{geom_point()}}, but with more flexibility in the shapes of the points.
+The symbol geom is used for the same purposes as \code{\link[=geom_point]{geom_point()}}, but with
+more flexibility in the shapes of the points.
+}
+\details{
+Custom symbol shapes can be defined using \code{symbol_recipe()}.
 }

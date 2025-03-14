@@ -15,7 +15,8 @@ symbol_recipe(x, y, id = NULL)
 multiple lines. All locations with the same \code{id} belong to the same line.}
 }
 \value{
-An object with class \code{symbol_recipe}.
+An string which can be passed to \code{geom_symbol()} or
+\code{geom_symbolswarm()} to be interpreted.
 }
 \description{
 Supply coordinates for a symbol to be plotted with \code{geom_symbol()} or

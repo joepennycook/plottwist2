@@ -1,6 +1,9 @@
 #' Points with a Wider Variety of Shapes
 #'
-#' The symbol geom is used for the same purposes as [geom_point()], but with more flexibility in the shapes of the points.
+#' The symbol geom is used for the same purposes as [geom_point()], but with
+#' more flexibility in the shapes of the points.
+#'
+#' Custom symbol shapes can be defined using `symbol_recipe()`.
 #'
 #' @inheritParams ggplot2::geom_point
 #'
@@ -46,18 +49,28 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                  # a list of grobs is created with one symbol for each data point
                                  grob_list <- lapply(seq(nrow(coords)), function(i_symbol) {
 
-                                   # the coordinates for the correct symbol are loaded from symbol_recipe
-                                   symbol_recipe <- symbol_recipes[[coords$symbol[i_symbol]]]
+                                   symbol <- coords$symbol[i_symbol]
 
-                                   if (head(symbol_recipe$x, 1) == tail(symbol_recipe$x, 1) &
-                                       head(symbol_recipe$y, 1) == tail(symbol_recipe$y, 1)) {
+                                   # extract symbol details according to data type
+                                   if (class(symbol) != "character") {
+                                     symbol_details <- symbol_lookup[[symbol]]
+                                   } else if (grepl("symbol_", symbol)) {
+                                     symbol_details <- symbol_recipe_to_list(symbol)
+                                   } else if (symbol %in% names(symbol_lookup)) {
+                                     symbol_details <- symbol_lookup[[symbol]]
+                                   } else {
+                                     stop("symbol values not recognised")
+                                   }
+
+                                   if (head(symbol_details$x, 1) == tail(symbol_details$x, 1) &
+                                       head(symbol_details$y, 1) == tail(symbol_details$y, 1)) {
 
                                      # if the path begins and ends in the same place,
                                      # a solid polygon with an outline and fill parameter is created
                                      grob_output <- polygonGrob(x = unit(coords$x[i_symbol], "native") +
-                                                                  unit(symbol_recipe$x * coords$size[i_symbol], "mm"),
+                                                                  unit(symbol_details$x * coords$size[i_symbol], "mm"),
                                                                 y = unit(coords$y[i_symbol], "native") +
-                                                                  unit(symbol_recipe$y * coords$size[i_symbol], "mm"),
+                                                                  unit(symbol_details$y * coords$size[i_symbol], "mm"),
                                                                 gp = gpar(col = alpha(coords$colour[i_symbol], coords$alpha[i_symbol]),
                                                                           fill = alpha(coords$fill[i_symbol], coords$alpha[i_symbol]),
                                                                           lwd = coords$stroke[i_symbol]))
@@ -66,10 +79,10 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                      # if the outline does not begin and end in the same place
                                      # a line is created with an outline but no fill parameter
                                      grob_output <- polylineGrob(x = unit(coords$x[i_symbol], "native") +
-                                                                   unit(symbol_recipe$x * coords$size[i_symbol], "mm"),
+                                                                   unit(symbol_details$x * coords$size[i_symbol], "mm"),
                                                                  y = unit(coords$y[i_symbol], "native") +
-                                                                   unit(symbol_recipe$y * coords$size[i_symbol], "mm"),
-                                                                 id = symbol_recipe$poly,
+                                                                   unit(symbol_details$y * coords$size[i_symbol], "mm"),
+                                                                 id = symbol_details$id,
                                                                  gp = gpar(col = alpha(coords$colour[i_symbol], coords$alpha[i_symbol]),
                                                                            lwd = coords$stroke[i_symbol]))
                                    }
@@ -86,7 +99,7 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                draw_key = draw_key_symbol
 )
 
-symbol_recipes <- list(
+symbol_lookup <- list(
   "triangle" = list("x" = c(-0.874, 0.875, 0, -0.874),
                     "y" = c(-0.513, -0.513, 1, -0.513)),
   "downward_triangle" = list("x" = c(-0.874, 0.875, 0, -0.874),
