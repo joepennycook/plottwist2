@@ -8,7 +8,8 @@
 #' @param id A numeric vector used to seperate locations in x and y into
 #' multiple lines. All locations with the same `id` belong to the same line.
 #'
-#' @returns An object with class `symbol_recipe`.
+#' @returns An string which can be passed to `geom_symbol()` or
+#' `geom_symbolswarm()` to be interpreted.
 #' @export
 #'
 #' @examples
@@ -25,32 +26,23 @@ symbol_recipe <- function(x, y, id = NULL) {
     stop("id is not the same length as the coordinates.")
   }
 
-  output <- list("x" = x, "y" = y, "id" = id)
-  class(output) <- "symbol_recipe"
-  output
+  paste0("symbol_",
+         paste(x, collapse = ","),
+         "_",
+         paste(y, collapse = ","),
+         "_",
+         paste(id, collapse = ","))
 }
 
-symbol_recipe_to_string <- function(recipe) {
-  if (class(recipe) != "symbol_recipe") {
-    stop("The supplied object is not a symbol recipe.
-         Use symbol_recipe() to define a new symbol.")
+symbol_recipe_to_list <- function(recipe) {
+
+  split_recipe <- strsplit(strsplit(recipe, "_")[[1]], ",")
+
+  if (split_recipe[[1]] != "symbol") {
+    stop("input is not a symbol recipe.")
   }
 
-  paste0(paste(recipe$x, collapse = ","),
-         "_",
-         paste(recipe$y, collapse = ","),
-         "_",
-         paste(recipe$id, collapse = ","))
-}
-
-string_to_symbol_recipe <- function(string) {
-  if (class(string) != "character") {
-    stop("input is not a string.")
-  }
-
-  output <- strsplit(strsplit(string, "_")[[1]], ",")
-
-  symbol_recipe(output[[1]],
-                output[[2]],
-                output[[3]])
+  list("x" = split_recipe[[2]],
+       "y" = split_recipe[[3]],
+       "id" = split_recipe[[4]])
 }
