@@ -5,7 +5,7 @@
 #'
 #' @param x A numeric vector specifying x values.
 #' @param y A numeric vector specifying y values.
-#' @param id A numeric vector used to seperate locations in x and y into
+#' @param id A numeric vector used to separate locations in x and y into
 #' multiple lines. All locations with the same `id` belong to the same line.
 #'
 #' @returns An string which can be passed to `geom_symbol()` or
