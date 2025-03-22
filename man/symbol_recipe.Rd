@@ -11,7 +11,7 @@ symbol_recipe(x, y, id = NULL)
 
 \item{y}{A numeric vector specifying y values.}
 
-\item{id}{A numeric vector used to seperate locations in x and y into
+\item{id}{A numeric vector used to separate locations in x and y into
 multiple lines. All locations with the same \code{id} belong to the same line.}
 }
 \value{

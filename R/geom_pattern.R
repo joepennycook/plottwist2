@@ -66,14 +66,19 @@ GeomPattern <- ggproto("GeomPattern", GeomPatch,
                          data$just <- params$just %||% 0.5
                          data <- transform(data,
                                            ymin = pmin(y, 0), ymax = pmax(y, 0),
-                                           xmin = x - width * just, xmax = x + width * (1 - just),
+                                           xmin = x - width * just,
+                                           xmax = x + width * (1 - just),
                                            width = NULL, just = NULL
                          )
                          flip_data(data, params$flipped_aes)
                        },
 
-                       draw_panel = function(self, data, panel_params, coord, lineend = "butt",
-                                             linejoin = "mitre", width = NULL, flipped_aes = FALSE) {
+                       draw_panel = function(self, data,
+                                             panel_params, coord,
+                                             lineend = "butt",
+                                             linejoin = "mitre",
+                                             width = NULL,
+                                             flipped_aes = FALSE) {
                          # Hack to ensure that width is detected as a parameter
                          ggproto_parent(GeomPatch, self)$draw_panel(
                            data,

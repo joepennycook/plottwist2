@@ -6,11 +6,13 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
                       xmax = unit(0.8, "npc"),
                       ymin = unit(0.2, "npc"),
                       ymax = unit(0.8, "npc"),
-                      pattern = "e_hori",
-                      spacing = unit(2, "mm"),
-                      p_linewidth = 0.5,
-                      p_colour = "black",
+                      size = 3,
+                      linewidth = 1,
+                      linewidth2 = 1,
+                      pattern = 1,
                       fill = "black",
+                      fill2 = "white",
+                      colour = "black",
                       name = NULL,
                       gp = NULL,
                       vp = NULL) {
@@ -20,10 +22,12 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
        ymin = ymin,
        ymax = ymax,
        pattern = pattern,
-       spacing = spacing,
-       p_linewidth = p_linewidth,
-       p_colour = p_colour,
+       size = size,
+       linewidth = linewidth,
+       linewidth2 = linewidth2,
        fill = fill,
+       fill2 = fill2,
+       colour = colour,
        name = name,
        gp = gp,
        vp = vp,
@@ -32,13 +36,27 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
 
 #' @export
 drawDetails.patch <- function(x, ...) {
-  pattern_recipe <- pattern_recipes[[x$pattern]]
+  pattern_details <- pattern_lookup[[x$pattern]]
 
   mm_xmin <- convertX(x$xmin, "mm", valueOnly = TRUE)
   mm_xmax <- convertX(x$xmax, "mm", valueOnly = TRUE)
   mm_ymin <- convertY(x$ymin, "mm", valueOnly = TRUE)
   mm_ymax <- convertY(x$ymax, "mm", valueOnly = TRUE)
-  mm_spacing <- convertY(x$spacing, "mm", valueOnly = TRUE)
+
+  tile_height <- x$size * pattern_details$scale
+  tile_width <- x$size * pattern_details$scale * pattern_details$ratio
+
+  coord_data <- as.data.frame(pattern_details[1:3])
+  coord_data$x <- coord_data$x * tile_width
+  coord_data$y <- coord_data$y * tile_height
+
+  primary_fill <- x$fill
+  secondary_fill <- x$fill2
+
+  if(pattern_details$invert) {
+    primary_fill <- x$fill2
+    secondary_fill <- x$fill
+  }
 
   # convert from xmin etc. to the relevant polygon coordinates
   polymap <- rect_to_poly(mm_xmin,
@@ -46,37 +64,327 @@ drawDetails.patch <- function(x, ...) {
                           mm_ymin,
                           mm_ymax)
 
-  if (!pattern_recipe$fill) {
-    x$fill <- "#00000000"
-  }
   # create the base rectangle graphical object according to parameters
   grid.polygon(x = polymap$x,
                y = polymap$y,
                default.units = "mm",
-               gp = gpar(fill = x$fill))
+               gp = gpar(fill = secondary_fill,
+                         colour = x$colour,
+                         linewidth = x$linewidth))
 
-  # otherwise calculate the appropriate stripe coordinates
-  stripemap <- stripe_points(width = mm_xmax - mm_xmin,
-                             height = mm_ymax - mm_ymin,
-                             spacing = mm_spacing * pattern_recipe$space_mult,
-                             alt = pattern_recipe$alt,
-                             stripe = pattern_recipe$stripe,
-                             orth = pattern_recipe$orth,
-                             hatch = pattern_recipe$hatch)
+  # count how many tiles fit wide,
+  tiles_wide <- (mm_xmax - mm_xmin) / tile_width
+  tiles_wide_round <- floor(tiles_wide)
+  tiles_wide_remainder <- (tiles_wide - tiles_wide_round) * tile_width
 
-  # layer stripes on top of rectangle
-  grid.polyline(x = c(t(stripemap[, c(1, 3)])) + mm_xmin,
-                y = c(t(stripemap[, c(2, 4)])) + mm_ymin,
-                id = rep(1:nrow(stripemap), each = 2),
-                default.units = "mm",
-                gp = gpar(col = x$p_colour,
-                          lwd = x$p_linewidth))
+  # count how many tiles fit high
+  tiles_high <- (mm_ymax - mm_ymin) / tile_height
+  tiles_high_round <- floor(tiles_high)
+  tiles_high_remainder <- (tiles_high - tiles_high_round) * tile_height
+
+  # run a for loop to draw in all the complete tiles
+  for (i in 1:tiles_wide_round) {
+    for (j in 1:tiles_high_round) {
+      grid.polyline(x = coord_data$x + mm_xmin + ((i - 1) * tile_width),
+                    y = coord_data$y + mm_ymin + ((j - 1) * tile_height),
+                    id = coord_data$id,
+                    default.units = "mm",
+                    gp = gpar(col = primary_fill,
+                              lwd = x$linewidth2))
+    }
+  }
+
+  # calculate coordinates for the right column overlap
+
+  rc_coord_data <- data.frame()
+
+  for (i in 1:nrow(coord_data)) {
+    # repeat for all coordinates in pattern tile
+    if(coord_data$x[i] <= tiles_wide_remainder) {
+      # if the coordinates are inside the patch, keep them
+      rc_coord_data <- rbind(rc_coord_data, coord_data[i, ])
+    } else {
+      # but if the coordinates are outside of the patch...
+      if (i != 1) {
+        # so long as we're not looking at the first coordinate...
+        if ((coord_data$x[i - 1] <= tiles_wide_remainder) &
+            (coord_data$id[i] == coord_data$id[i - 1])) {
+          # if the previous coordinates are within the patch
+          # and part of the same line
+          # calculate the intersection of the line with the border
+          # and save the intersection as a new coordinate point
+
+          xs <- coord_data$x[(i - 1):i]
+          ys <- coord_data$y[(i - 1):i]
+
+          new_y <- predict(lm(ys ~ xs), data.frame("xs" = tiles_wide_remainder))
+
+          rc_coord_data <- rbind(rc_coord_data,
+                                 data.frame("x" = tiles_wide_remainder,
+                                            "y" = new_y,
+                                            "id" = coord_data$id[i]))
+        }
+      }
+
+      if (i != nrow(coord_data)) {
+        # so long as we're not looking at the last coordinate...
+        if ((coord_data$x[i + 1] <= tiles_wide_remainder) &
+            (coord_data$id[i] == coord_data$id[i + 1])) {
+          # if the next coordinates are in the patch
+          # and part of the same line
+          # calculate the intersection and save it
+
+          xs <- coord_data$x[i:(i + 1)]
+          ys <- coord_data$y[i:(i + 1)]
+
+          new_y <- predict(lm(ys ~ xs), data.frame("xs" = tiles_wide_remainder))
+
+          rc_coord_data <- rbind(rc_coord_data,
+                                 data.frame("x" = tiles_wide_remainder,
+                                            "y" = new_y,
+                                            "id" = coord_data$id[i]))
+        }
+      }
+    }
+  }
+
+  # draw the right column of tiles
+
+  if (nrow(rc_coord_data) > 0) {
+    for (j in 1:tiles_high_round) {
+      grid.polyline(x = rc_coord_data$x + mm_xmin +
+                      (tiles_wide_round * tile_width),
+                    y = rc_coord_data$y + mm_ymin + ((j - 1) * tile_height),
+                    id = rc_coord_data$id,
+                    default.units = "mm",
+                    gp = gpar(col = primary_fill,
+                              lwd = x$linewidth2))
+    }
+  }
+
+  # calculate coordinates for the top row overlap
+
+  tr_coord_data <- data.frame()
+
+  for (i in 1:nrow(coord_data)) {
+    # repeat for all coordinates in pattern tile
+    if(coord_data$y[i] <= tiles_high_remainder) {
+      # if the coordinates are inside the patch, keep them
+      tr_coord_data <- rbind(tr_coord_data, coord_data[i, ])
+    } else {
+      # but if the coordinates are outside of the patch...
+      if (i != 1) {
+        # so long as we're not looking at the first coordinate...
+        if ((coord_data$y[i - 1] <= tiles_high_remainder) &
+            (coord_data$id[i] == coord_data$id[i - 1])) {
+          # if the previous coordinates are within the patch
+          # and part of the same line
+          # calculate the intersection of the line with the border
+          # and save the intersection as a new coordinate point
+
+          xs <- coord_data$x[(i - 1):i]
+          ys <- coord_data$y[(i - 1):i]
+
+          new_x <- predict(lm(xs ~ ys), data.frame("ys" = tiles_high_remainder))
+
+          tr_coord_data <- rbind(tr_coord_data,
+                                 data.frame("x" = new_x,
+                                            "y" = tiles_high_remainder,
+                                            "id" = coord_data$id[i]))
+        }
+      }
+
+      if (i != nrow(coord_data)) {
+        # so long as we're not looking at the last coordinate...
+        if ((coord_data$y[i + 1] <= tiles_high_remainder) &
+            (coord_data$id[i] == coord_data$id[i + 1])) {
+          # if the next coordinates are in the patch
+          # and part of the same line
+          # calculate the intersection and save it
+
+          xs <- coord_data$x[i:(i + 1)]
+          ys <- coord_data$y[i:(i + 1)]
+
+          new_x <- predict(lm(xs ~ ys), data.frame("ys" = tiles_high_remainder))
+
+          tr_coord_data <- rbind(tr_coord_data,
+                                 data.frame("x" = new_x,
+                                            "y" = tiles_high_remainder,
+                                            "id" = coord_data$id[i]))
+        }
+      }
+    }
+  }
+
+  # draw the top row of tiles
+
+  if (nrow(tr_coord_data) > 0) {
+    for (i in 1:tiles_wide_round) {
+      grid.polyline(x = tr_coord_data$x + mm_xmin + ((i - 1) * tile_width),
+                    y = tr_coord_data$y + mm_ymin +
+                      (tiles_high_round * tile_height),
+                    id = tr_coord_data$id,
+                    default.units = "mm",
+                    gp = gpar(col = primary_fill,
+                              lwd = x$linewidth2))
+    }
+  }
+
+  # calculate coordinates for the top right corner overlap
+
+  trc_coord_data <- data.frame()
+
+  for (i in 1:nrow(coord_data)) {
+    # repeat for all coordinates in pattern tile
+    if(coord_data$y[i] <= tiles_high_remainder &
+       coord_data$x[i] <= tiles_wide_remainder) {
+      # if the coordinates are inside the patch, keep them
+      trc_coord_data <- rbind(trc_coord_data, coord_data[i, ])
+    } else {
+      # but if the coordinates are outside of the patch...
+      if (i != 1) {
+        # so long as we're not looking at the first coordinate...
+        if ((coord_data$y[i - 1] <= tiles_high_remainder &
+             coord_data$x[i - 1] <= tiles_wide_remainder) &
+            (coord_data$id[i] == coord_data$id[i - 1])) {
+          # if the previous coordinates are within the patch
+          # and part of the same line
+          # calculate the intersection of the line with the border
+          # and save the intersection as a new coordinate point
+
+          xs <- coord_data$x[(i - 1):i]
+          ys <- coord_data$y[(i - 1):i]
+
+          if (xs[1] == xs[2]) {
+            # if the line is parallel to the y axis
+            trc_coord_data <- rbind(trc_coord_data,
+                                    data.frame("x" = c(xs[1],
+                                                       tiles_wide_remainder),
+                                               "y" = rep(tiles_high_remainder,
+                                                         2),
+                                               "id" = rep(coord_data$id[i], 2)))
+          } else if (ys[1] == ys[2]) {
+            # or if the line is parallel to the x axis
+            trc_coord_data <- rbind(trc_coord_data,
+                                    data.frame("x" = rep(tiles_wide_remainder,
+                                                         2),
+                                               "y" = c(ys[1],
+                                                       tiles_high_remainder),
+                                               "id" = rep(coord_data$id[i], 2)))
+          } else {
+            # otherwise figure out which line is shorter
+            new_x <- predict(lm(xs ~ ys),
+                             data.frame("ys" = tiles_high_remainder))
+            new_y <- predict(lm(ys ~ xs),
+                             data.frame("xs" = tiles_wide_remainder))
+
+            dist_high <- (((xs[1] - new_x) ^ 2) +
+                            ((ys[1] - tiles_high_remainder) ^ 2)) ^ 0.5
+            dist_wide <- (((xs[1] - tiles_wide_remainder) ^ 2) +
+                            ((ys[1] - new_y) ^ 2)) ^ 0.5
+
+            if (dist_high <= dist_wide) {
+              trc_coord_data <- rbind(trc_coord_data,
+                                      data.frame("x" = c(new_x,
+                                                         tiles_wide_remainder),
+                                                 "y" = rep(tiles_high_remainder,
+                                                           2),
+                                                 "id" = rep(coord_data$id[i],
+                                                            2)))
+            } else {
+              trc_coord_data <- rbind(trc_coord_data,
+                                      data.frame("x" = rep(tiles_wide_remainder,
+                                                           2),
+                                                 "y" = c(new_y,
+                                                         tiles_high_remainder),
+                                                 "id" = rep(coord_data$id[i],
+                                                            2)))
+            }
+          }
+        }
+      }
+
+      if (i != nrow(coord_data)) {
+        # so long as we're not looking at the last coordinate...
+        if ((coord_data$y[i + 1] <= tiles_high_remainder &
+             coord_data$x[i + 1] <= tiles_wide_remainder) &
+            (coord_data$id[i] == coord_data$id[i + 1])) {
+          # if the next coordinates are in the patch
+          # and part of the same line
+          # calculate the intersection and save it
+
+          xs <- coord_data$x[i:(i + 1)]
+          ys <- coord_data$y[i:(i + 1)]
+
+          if (xs[1] == xs[2]) {
+            # if the line is parallel to the y axis
+            trc_coord_data <- rbind(trc_coord_data,
+                                    data.frame("x" = xs[1],
+                                               "y" = tiles_high_remainder,
+                                               "id" = coord_data$id[i]))
+          } else if (ys[1] == ys[2]) {
+            # or if the line is parallel to the x axis
+            trc_coord_data <- rbind(trc_coord_data,
+                                    data.frame("x" = tiles_wide_remainder,
+                                               "y" = ys[1],
+                                               "id" = coord_data$id[i]))
+          } else {
+            new_x <- predict(lm(xs ~ ys),
+                             data.frame("ys" = tiles_high_remainder))
+            new_y <- predict(lm(ys ~ xs),
+                             data.frame("xs" = tiles_wide_remainder))
+
+            dist_high <- (((xs[2] - new_x) ^ 2) +
+                            ((ys[2] - tiles_high_remainder) ^ 2)) ^ 0.5
+            dist_wide <- (((xs[2] - tiles_wide_remainder) ^ 2) +
+                            ((ys[2] - new_y) ^ 2)) ^ 0.5
+
+            if (dist_high <= dist_wide) {
+              trc_coord_data <- rbind(trc_coord_data,
+                                      data.frame("x" = new_x,
+                                                 "y" = tiles_high_remainder,
+                                                 "id" = coord_data$id[i]))
+            } else {
+              trc_coord_data <- rbind(trc_coord_data,
+                                      data.frame("x" = tiles_wide_remainder,
+                                                 "y" = new_y,
+                                                 "id" = coord_data$id[i]))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  # draw the final partial tile
+
+  if (nrow(trc_coord_data) > 0) {
+    grid.polyline(x = trc_coord_data$x + mm_xmin +
+                    (tiles_wide_round * tile_width),
+                  y = trc_coord_data$y + mm_ymin +
+                    (tiles_high_round * tile_height),
+                  id = trc_coord_data$id,
+                  default.units = "mm",
+                  gp = gpar(col = primary_fill,
+                            lwd = x$linewidth2))
+  }
+
+  # draw a final outline around the patch
 
   grid.polygon(x = polymap$x,
                y = polymap$y,
                default.units = "mm",
-               gp = gpar(fill = "#00000000"))
+               gp = gpar(fill = "#00000000",
+                         colour = x$colour,
+                         linewidth = x$linewidth))
 }
+
+pattern_lookup <- list("diagonal" = list("x" = c(0, 1),
+                                         "y" = c(0, 1),
+                                         "id" = c(1, 1),
+                                         "scale" = 1,
+                                         "ratio" = 1,
+                                         "invert" = FALSE))
 
 data_frame0 <- function(...) vctrs::data_frame(..., .name_repair = "minimal")
 
@@ -86,257 +394,3 @@ rect_to_poly <- function(xmin, xmax, ymin, ymax) {
     x = c(xmin, xmax, xmax, xmin, xmin, xmax)
   )
 }
-
-diag_stripe_points <- function(width, height, spacing, flip = FALSE) {
-
-  if(width == 0 | height == 0) {
-    from_x <- 0
-    to_x <- 0
-    from_y <- 0
-    to_y <- 0
-  } else {
-
-    outline_spacing <- (2 * (spacing ^ 2)) ^ 0.5
-
-    if (outline_spacing < width) {
-      width_points <- seq(outline_spacing, width, outline_spacing)
-      w_partial <- outline_spacing - (width - tail(width_points, 1))
-    } else {
-      width_points <- numeric()
-      w_partial <- outline_spacing - width
-    }
-
-    if(w_partial < height) {
-      height2_points <- seq(w_partial,
-                            height, outline_spacing)
-    } else {
-      height2_points <- numeric()
-    }
-
-    if (outline_spacing < height) {
-      height_points <- seq(outline_spacing, height, outline_spacing)
-      h_partial <- outline_spacing - (height - tail(height_points, 1))
-    } else {
-      height_points <- numeric()
-      h_partial <- outline_spacing - height
-    }
-
-    if(h_partial < width) {
-      width2_points <- seq(h_partial,
-                           width, outline_spacing)
-    } else {
-      width2_points <- numeric()
-    }
-
-    from_x <- c(rep(0, length(height_points)), width2_points)
-    from_y <- c(height_points, rep(height, length(width2_points)))
-    to_x <- c(width_points, rep(width, length(height2_points)))
-    to_y <- c(rep(0, length(width_points)), height2_points)
-
-    if(flip == TRUE) {
-      from_y <- height - from_y
-      to_y <- (to_y - height) * -1
-    }
-
-  }
-
-  data.frame("from_x" = from_x,
-             "from_y" = from_y,
-             "to_x" = to_x,
-             "to_y" = to_y)
-}
-
-orth_stripe_points <- function(width, height, spacing, hori = FALSE) {
-
-  if (hori == TRUE) {
-    from_x <- seq(0, width, spacing)
-    to_x <- from_x
-    from_y <- rep(height, length(from_x))
-    to_y <- rep(0, length(from_x))
-  } else {
-    from_y <- seq(0, height, spacing)
-    to_y <- from_y
-    from_x <- rep(width, length(from_y))
-    to_x <- rep(0, length(from_y))
-  }
-
-  data.frame("from_x" = from_x,
-             "from_y" = from_y,
-             "to_x" = to_x,
-             "to_y" = to_y)
-}
-
-stripe_points <- function(width, height, spacing, alt = F, stripe = T, orth = T, hatch = F) {
-
-  if (stripe) {
-    if (orth) {
-      if (hatch) {
-        output <- rbind(orth_stripe_points(width, height, spacing, T),
-                        orth_stripe_points(width, height, spacing, F))
-      } else {
-        output <- orth_stripe_points(width, height, spacing, alt)
-      }
-    } else {
-      if (hatch) {
-        output <- rbind(diag_stripe_points(width, height, spacing, T),
-                        diag_stripe_points(width, height, spacing, F))
-      } else {
-        output <- diag_stripe_points(width, height, spacing, alt)
-      }
-    }
-  } else {
-    output <- orth_stripe_points(0, 0, 0)
-  }
-
-  output
-}
-
-pattern_recipes <- list(
-  "fill" = list("fill" = T,
-                "stripe" = F),
-  "f_hori" = list("fill" = T,
-                  "stripe" = T,
-                  "space_mult" = 1,
-                  "alt" = F,
-                  "orth" = T,
-                  "hatch" = F),
-  "f_vert" = list("fill" = T,
-                  "stripe" = T,
-                  "space_mult" = 1,
-                  "alt" = T,
-                  "orth" = T,
-                  "hatch" = F),
-  "f_fdiag" = list("fill" = T,
-                   "stripe" = T,
-                   "space_mult" = 0.9,
-                   "alt" = T,
-                   "orth" = F,
-                   "hatch" = F),
-  "f_bdiag" = list("fill" = T,
-                   "stripe" = T,
-                   "space_mult" = 0.9,
-                   "alt" = F,
-                   "orth" = F,
-                   "hatch" = F),
-  "f_hatch" = list("fill" = T,
-                   "stripe" = T,
-                   "space_mult" = 1,
-                   "alt" = F,
-                   "orth" = T,
-                   "hatch" = T),
-  "f_diaghatch" = list("fill" = T,
-                       "stripe" = T,
-                       "space_mult" = 0.9,
-                       "alt" = F,
-                       "orth" = F,
-                       "hatch" = T),
-  "empty" = list("fill" = F,
-                 "stripe" = F),
-  "e_hori" = list("fill" = F,
-                  "stripe" = T,
-                  "space_mult" = 1,
-                  "alt" = F,
-                  "orth" = T,
-                  "hatch" = F),
-  "e_vert" = list("fill" = F,
-                  "stripe" = T,
-                  "space_mult" = 1,
-                  "alt" = T,
-                  "orth" = T,
-                  "hatch" = F),
-  "e_fdiag" = list("fill" = F,
-                   "stripe" = T,
-                   "space_mult" = 0.9,
-                   "alt" = T,
-                   "orth" = F,
-                   "hatch" = F),
-  "e_bdiag" = list("fill" = F,
-                   "stripe" = T,
-                   "space_mult" = 0.9,
-                   "alt" = F,
-                   "orth" = F,
-                   "hatch" = F),
-  "e_hatch" = list("fill" = F,
-                   "stripe" = T,
-                   "space_mult" = 1,
-                   "alt" = F,
-                   "orth" = T,
-                   "hatch" = T),
-  "e_diaghatch" = list("fill" = F,
-                       "stripe" = T,
-                       "space_mult" = 0.9,
-                       "alt" = F,
-                       "orth" = F,
-                       "hatch" = T),
-  "f_hori_2" = list("fill" = T,
-                    "stripe" = T,
-                    "space_mult" = 2,
-                    "alt" = F,
-                    "orth" = T,
-                    "hatch" = F),
-  "f_vert_2" = list("fill" = T,
-                    "stripe" = T,
-                    "space_mult" = 2,
-                    "alt" = T,
-                    "orth" = T,
-                    "hatch" = F),
-  "f_fdiag_2" = list("fill" = T,
-                     "stripe" = T,
-                     "space_mult" = 1.8,
-                     "alt" = T,
-                     "orth" = F,
-                     "hatch" = F),
-  "f_bdiag_2" = list("fill" = T,
-                     "stripe" = T,
-                     "space_mult" = 1.8,
-                     "alt" = F,
-                     "orth" = F,
-                     "hatch" = F),
-  "f_hatch_2" = list("fill" = T,
-                     "stripe" = T,
-                     "space_mult" = 2,
-                     "alt" = F,
-                     "orth" = T,
-                     "hatch" = T),
-  "f_diaghatch_2" = list("fill" = T,
-                         "stripe" = T,
-                         "space_mult" = 1.8,
-                         "alt" = F,
-                         "orth" = F,
-                         "hatch" = T),
-  "e_hori_2" = list("fill" = F,
-                    "stripe" = T,
-                    "space_mult" = 2,
-                    "alt" = F,
-                    "orth" = T,
-                    "hatch" = F),
-  "e_vert_2" = list("fill" = F,
-                    "stripe" = T,
-                    "space_mult" = 2,
-                    "alt" = T,
-                    "orth" = T,
-                    "hatch" = F),
-  "e_fdiag_2" = list("fill" = F,
-                     "stripe" = T,
-                     "space_mult" = 1.8,
-                     "alt" = T,
-                     "orth" = F,
-                     "hatch" = F),
-  "e_bdiag_2" = list("fill" = F,
-                     "stripe" = T,
-                     "space_mult" = 1.8,
-                     "alt" = F,
-                     "orth" = F,
-                     "hatch" = F),
-  "e_hatch_2" = list("fill" = F,
-                     "stripe" = T,
-                     "space_mult" = 2,
-                     "alt" = F,
-                     "orth" = T,
-                     "hatch" = T),
-  "e_diaghatch_2" = list("fill" = F,
-                         "stripe" = T,
-                         "space_mult" = 1.8,
-                         "alt" = F,
-                         "orth" = F,
-                         "hatch" = T))

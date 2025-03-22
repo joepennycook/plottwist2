@@ -15,13 +15,12 @@ draw_key_patch <- function(data, params, size) {
             ymin = unit(0.1, "npc"),
             ymax = unit(0.9, "npc"),
             pattern = data$pattern %||% 1,
-            spacing = unit(data$spacing %||% 1, "mm"),
-            p_colour = data$p_colour %||% "black",
-            p_linewidth = data$p_linewidth %||% 1,
-            fill = data$fill %||% "white",
-            gp = gpar(col = data$colour %||% "black",
-                      lwd = data$linewidth %||% 1.42,
-                      lty = data$linetype %||% 1))
+            size = data$size %||% 3,
+            fill = data$fill %||% "black",
+            linewidth2 = data$linewidth2 %||% 1.42,
+            fill2 = data$fill2 %||% "white",
+            colour = data$colour %||% "black",
+            linewidth = data$linewidth %||% 1.42)
 }
 
 #' @export
@@ -43,16 +42,23 @@ draw_key_symbol <- function(data, params, size) {
 
   if (head(symbol_details$x, 1) == tail(symbol_details$x, 1) &
       head(symbol_details$y, 1) == tail(symbol_details$y, 1)) {
-    geom_output <- polygonGrob(x = unit(0.5, "npc") + unit(symbol_details$x * data$size, "mm"),
-                               y = unit(0.5, "npc") + unit(symbol_details$y * data$size, "mm"),
-                               gp = gpar(col = alpha(data$colour %||% "black", data$alpha),
-                                         fill = alpha(data$fill %||% "black", data$alpha),
+    geom_output <- polygonGrob(x = unit(0.5, "npc") +
+                                 unit(symbol_details$x * data$size, "mm"),
+                               y = unit(0.5, "npc") +
+                                 unit(symbol_details$y * data$size, "mm"),
+                               gp = gpar(col = alpha(data$colour %||% "black",
+                                                     data$alpha),
+                                         fill = alpha(data$fill %||% "black",
+                                                      data$alpha),
                                          lwd = data$stroke %||% 0.5))
   } else {
-    geom_output <- polylineGrob(x = unit(0.5, "npc") + unit(symbol_details$x * data$size, "mm"),
-                                y = unit(0.5, "npc") + unit(symbol_details$y * data$size, "mm"),
+    geom_output <- polylineGrob(x = unit(0.5, "npc") +
+                                  unit(symbol_details$x * data$size, "mm"),
+                                y = unit(0.5, "npc") +
+                                  unit(symbol_details$y * data$size, "mm"),
                                 id = symbol_details$id,
-                                gp = gpar(col = alpha(data$colour %||% "black", data$alpha),
+                                gp = gpar(col = alpha(data$colour %||% "black",
+                                                      data$alpha),
                                           lwd = data$stroke %||% 0.5))
   }
   geom_output
