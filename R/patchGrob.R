@@ -379,13 +379,6 @@ drawDetails.patch <- function(x, ...) {
                          linewidth = x$linewidth))
 }
 
-pattern_lookup <- list("diagonal" = list("x" = c(0, 1),
-                                         "y" = c(0, 1),
-                                         "id" = c(1, 1),
-                                         "scale" = 1,
-                                         "ratio" = 1,
-                                         "invert" = FALSE))
-
 data_frame0 <- function(...) vctrs::data_frame(..., .name_repair = "minimal")
 
 rect_to_poly <- function(xmin, xmax, ymin, ymax) {
