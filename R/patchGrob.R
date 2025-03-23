@@ -85,21 +85,35 @@ drawDetails.patch <- function(x, ...) {
   # how many seperate lines
   n_id <- length(unique(coord_data$id))
 
+  tiles_wide_seq <- seq(tiles_wide_round) - 1
+  tiles_high_seq <- seq(tiles_high_round) - 1
+
   # extrapolate the tile coordinates to the main body of the patch
-  main_coord_data <- mapply(displace_coords,
-                            wide = rep(seq(tiles_wide_round),
-                                       times = tiles_high_round),
-                            high = rep(seq(tiles_high_round),
-                                       each = tiles_wide_round),
-                            coord_data = list(coord_data),
-                            n_id = n_id,
-                            tiles_wide_round = tiles_wide_round,
-                            mm_xmin = mm_xmin,
-                            mm_ymin = mm_ymin,
-                            tile_width = tile_width,
-                            tile_height = tile_height,
-                            SIMPLIFY = FALSE) |>
-    do.call(what = "rbind")
+  main_coord_data <- data.frame("x" = rep(coord_data$x,
+                                          tiles_high_round * tiles_wide_round) +
+                                  mm_xmin +
+                                  rep(rep(tiles_wide_seq,
+                                          each = nrow(coord_data)),
+                                      times = tiles_high_round) * tile_width,
+                                "y" = rep(coord_data$y, tiles_high_round *
+                                            tiles_wide_round) +
+                                  mm_ymin +
+                                  rep(tiles_high_seq,
+                                      each = nrow(coord_data) *
+                                        tiles_wide_round) *
+                                  tile_height,
+                                "id" = rep(coord_data$id,
+                                           tiles_high_round *
+                                             tiles_wide_round) +
+                                  # then add a displacement based on x tiling
+                                  (rep(rep(tiles_wide_seq,
+                                           each = nrow(coord_data)),
+                                       times = tiles_high_round) * n_id) +
+                                  # then add a displacement based on y tiling
+                                  (rep(tiles_high_seq,
+                                       each = nrow(coord_data) *
+                                         tiles_wide_round) *
+                                     tiles_wide_round * n_id))
 
   # draw most of the pattern
   grid.polyline(x = main_coord_data$x,
@@ -401,22 +415,4 @@ rect_to_poly <- function(xmin, xmax, ymin, ymax) {
     y = c(ymax, ymax, ymin, ymin, ymax, ymax),
     x = c(xmin, xmax, xmax, xmin, xmin, xmax)
   )
-}
-
-# function to calculate coordinates of tiled patterns
-# function assumes the presence of several variables in the environment
-displace_coords <- function(wide, high,
-                            coord_data,
-                            n_id,
-                            tiles_wide_round,
-                            mm_xmin,
-                            mm_ymin,
-                            tile_width,
-                            tile_height) {
-  coord_data$id <- coord_data$id +
-    ((wide - 1) * n_id) +
-    (((high - 1) * tiles_wide_round) * n_id)
-  coord_data$x <- coord_data$x + mm_xmin + ((wide - 1) * tile_width)
-  coord_data$y <- coord_data$y + mm_ymin + ((high - 1) * tile_height)
-  coord_data
 }
