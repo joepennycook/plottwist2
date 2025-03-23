@@ -82,17 +82,32 @@ drawDetails.patch <- function(x, ...) {
   tiles_high_round <- floor(tiles_high)
   tiles_high_remainder <- (tiles_high - tiles_high_round) * tile_height
 
-  # run a for loop to draw in all the complete tiles
-  for (i in 1:tiles_wide_round) {
-    for (j in 1:tiles_high_round) {
-      grid.polyline(x = coord_data$x + mm_xmin + ((i - 1) * tile_width),
-                    y = coord_data$y + mm_ymin + ((j - 1) * tile_height),
-                    id = coord_data$id,
-                    default.units = "mm",
-                    gp = gpar(col = primary_fill,
-                              lwd = x$linewidth2))
-    }
-  }
+  # how many seperate lines
+  n_id <- length(unique(coord_data$id))
+
+  # extrapolate the tile coordinates to the main body of the patch
+  main_coord_data <- mapply(displace_coords,
+                            wide = rep(seq(tiles_wide_round),
+                                       times = tiles_high_round),
+                            high = rep(seq(tiles_high_round),
+                                       each = tiles_wide_round),
+                            coord_data = list(coord_data),
+                            n_id = n_id,
+                            tiles_wide_round = tiles_wide_round,
+                            mm_xmin = mm_xmin,
+                            mm_ymin = mm_ymin,
+                            tile_width = tile_width,
+                            tile_height = tile_height,
+                            SIMPLIFY = FALSE) |>
+    do.call(what = "rbind")
+
+  # draw most of the pattern
+  grid.polyline(x = main_coord_data$x,
+                y = main_coord_data$y,
+                id = main_coord_data$id,
+                default.units = "mm",
+                gp = gpar(col = primary_fill,
+                          lwd = x$linewidth2))
 
   # calculate coordinates for the right column overlap
 
@@ -386,4 +401,22 @@ rect_to_poly <- function(xmin, xmax, ymin, ymax) {
     y = c(ymax, ymax, ymin, ymin, ymax, ymax),
     x = c(xmin, xmax, xmax, xmin, xmin, xmax)
   )
+}
+
+# function to calculate coordinates of tiled patterns
+# function assumes the presence of several variables in the environment
+displace_coords <- function(wide, high,
+                            coord_data,
+                            n_id,
+                            tiles_wide_round,
+                            mm_xmin,
+                            mm_ymin,
+                            tile_width,
+                            tile_height) {
+  coord_data$id <- coord_data$id +
+    ((wide - 1) * n_id) +
+    (((high - 1) * tiles_wide_round) * n_id)
+  coord_data$x <- coord_data$x + mm_xmin + ((wide - 1) * tile_width)
+  coord_data$y <- coord_data$y + mm_ymin + ((high - 1) * tile_height)
+  coord_data
 }
