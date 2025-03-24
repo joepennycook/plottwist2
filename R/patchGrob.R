@@ -144,17 +144,18 @@ drawDetails.patch <- function(x, ...) {
   rc_coord_data <- dup_coord_data
 
   rc_coord_data$x[x_cross_out] <- tiles_wide_remainder
-  rc_coord_data$y[x_cross_out] <- dup_coord_data$y[x_cross_from] +
-    ((dup_coord_data$y[x_cross_out] - dup_coord_data$y[x_cross_from]) *
-       ((tiles_wide_remainder - dup_coord_data$x[x_cross_from]) /
-          ((dup_coord_data$x[x_cross_out] - dup_coord_data$x[x_cross_from]))))
+  rc_coord_data$y[x_cross_out] <- calc_new_to(foc_from = dup_coord_data$y[x_cross_from],
+                                              foc_old_to = dup_coord_data$y[x_cross_out],
+                                              alt_from = dup_coord_data$x[x_cross_from],
+                                              alt_old_to = dup_coord_data$x[x_cross_out],
+                                              alt_new_to = tiles_wide_remainder)
 
   rc_coord_data$x[x_cross_in] <- tiles_wide_remainder
-  rc_coord_data$y[x_cross_in] <- dup_coord_data$y[x_cross_to] +
-    ((coord_data$y[x_cross_in] - dup_coord_data$y[x_cross_to]) *
-       ((tiles_wide_remainder - dup_coord_data$x[x_cross_to]) /
-          ((dup_coord_data$x[x_cross_in] - dup_coord_data$x[x_cross_to]))))
-
+  rc_coord_data$y[x_cross_in] <- calc_new_to(foc_from = dup_coord_data$y[x_cross_to],
+                                             foc_old_to = dup_coord_data$y[x_cross_in],
+                                             alt_from = dup_coord_data$x[x_cross_to],
+                                             alt_old_to = dup_coord_data$x[x_cross_in],
+                                             alt_new_to = tiles_wide_remainder)
   # remove points which are outside but not adjacent to one inside
   trim_rc_coord_data <- rc_coord_data[!(dup_x_out & !x_cross_out & !x_cross_in), ]
 
@@ -194,16 +195,18 @@ drawDetails.patch <- function(x, ...) {
   tr_coord_data <- dup_coord_data
 
   tr_coord_data$y[y_cross_out] <- tiles_high_remainder
-  tr_coord_data$x[y_cross_out] <- dup_coord_data$x[y_cross_from] +
-    ((dup_coord_data$x[y_cross_out] - dup_coord_data$x[y_cross_from]) *
-       ((tiles_high_remainder - dup_coord_data$y[y_cross_from]) /
-          ((dup_coord_data$y[y_cross_out] - dup_coord_data$y[y_cross_from]))))
+  tr_coord_data$x[y_cross_out] <- calc_new_to(foc_from = dup_coord_data$x[y_cross_from],
+                                              foc_old_to = dup_coord_data$x[y_cross_out],
+                                              alt_from = dup_coord_data$y[y_cross_from],
+                                              alt_old_to = dup_coord_data$y[y_cross_out],
+                                              alt_new_to = tiles_high_remainder)
 
   tr_coord_data$y[y_cross_in] <- tiles_high_remainder
-  tr_coord_data$x[y_cross_in] <- dup_coord_data$x[y_cross_to] +
-    ((dup_coord_data$x[y_cross_in] - dup_coord_data$x[y_cross_to]) *
-       ((tiles_high_remainder - dup_coord_data$y[y_cross_to]) /
-          ((dup_coord_data$y[y_cross_in] - dup_coord_data$y[y_cross_to]))))
+  tr_coord_data$x[y_cross_in] <- calc_new_to(foc_from = dup_coord_data$x[y_cross_to],
+                                             foc_old_to = dup_coord_data$x[y_cross_in],
+                                             alt_from = dup_coord_data$y[y_cross_to],
+                                             alt_old_to = dup_coord_data$y[y_cross_in],
+                                             alt_new_to = tiles_high_remainder)
 
   # remove points which are outside but not adjacent to one inside
   trim_tr_coord_data <- tr_coord_data[!(dup_y_out & !y_cross_out & !y_cross_in), ]
@@ -252,71 +255,80 @@ drawDetails.patch <- function(x, ...) {
   trc_coord_data[y_cross_out | y_cross_in, ] <-
     tr_coord_data[y_cross_out | y_cross_in, ]
 
-  ## might stop here for the evening
-  # i am looking at a point inside the corner
-  # and I know it crosses out of the corner,
-  # but I don't know which boundary it crosses first
-  # if I knew which boundary it crosses most extremely is that the same thing?
-
-  # I'm getting somewhere but I have to take a break
-
   # if it crosses x boundary first
   # x is the just the boundary
   # otherwise calculate it
   trc_coord_data$x[xy_cross_out] <-
-    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_from]) /
-             (dup_coord_data$x[xy_cross_out] - dup_coord_data$x[xy_cross_from]) <
-             (tiles_high_remainder - dup_coord_data$y[xy_cross_from]) /
-             (dup_coord_data$y[xy_cross_out] - dup_coord_data$y[xy_cross_from]),
+    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_from],
+                     old_to = dup_coord_data$x[xy_cross_out],
+                     new_to = tiles_wide_remainder) <
+             prop_dist(from = dup_coord_data$y[xy_cross_from],
+                       old_to = dup_coord_data$y[xy_cross_out],
+                       new_to = tiles_high_remainder),
            tiles_wide_remainder,
-           dup_coord_data$x[xy_cross_from] +
-             ((dup_coord_data$x[xy_cross_out] - dup_coord_data$x[xy_cross_from]) *
-                ((tiles_high_remainder - dup_coord_data$y[xy_cross_from]) /
-                   ((dup_coord_data$y[xy_cross_out] - dup_coord_data$y[xy_cross_from]))))
+           calc_new_to(foc_from = dup_coord_data$x[xy_cross_from],
+                       foc_old_to = dup_coord_data$x[xy_cross_out],
+                       alt_from = dup_coord_data$y[xy_cross_from],
+                       alt_old_to = dup_coord_data$y[xy_cross_out],
+                       alt_new_to = tiles_high_remainder)
     )
 
   # if it crosses the x boundary first
   # calculate y
   # otherwise y is the boundary
+
   trc_coord_data$y[xy_cross_out] <-
-    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_from]) /
-             (dup_coord_data$x[xy_cross_out] - dup_coord_data$x[xy_cross_from]) <
-             (tiles_high_remainder - dup_coord_data$y[xy_cross_from]) /
-             (dup_coord_data$y[xy_cross_out] - dup_coord_data$y[xy_cross_from]),
-           dup_coord_data$y[x_cross_from] +
-             ((dup_coord_data$y[x_cross_out] - dup_coord_data$y[x_cross_from]) *
-                ((tiles_wide_remainder - dup_coord_data$x[x_cross_from]) /
-                   ((dup_coord_data$x[x_cross_out] - dup_coord_data$x[x_cross_from])))),
-           tiles_high_remainder)
+    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_from],
+                     old_to = dup_coord_data$x[xy_cross_out],
+                     new_to = tiles_wide_remainder) <
+             prop_dist(from = dup_coord_data$y[xy_cross_from],
+                       old_to = dup_coord_data$y[xy_cross_out],
+                       new_to = tiles_high_remainder),
+           calc_new_to(foc_from = dup_coord_data$y[xy_cross_from],
+                       foc_old_to = dup_coord_data$y[xy_cross_out],
+                       alt_from = dup_coord_data$x[xy_cross_from],
+                       alt_old_to = dup_coord_data$x[xy_cross_out],
+                       alt_new_to = tiles_wide_remainder),
+           tiles_high_remainder
+    )
 
   # if it crosses x boundary first
   # x is the just the boundary
   # otherwise calculate it
+
   trc_coord_data$x[xy_cross_in] <-
-    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_to]) /
-             (dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to]) <
-             (tiles_high_remainder - dup_coord_data$y[xy_cross_to]) /
-             (dup_coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]),
+    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_to],
+                     old_to = dup_coord_data$x[xy_cross_in],
+                     new_to = tiles_wide_remainder) <
+             prop_dist(from = dup_coord_data$y[xy_cross_to],
+                       old_to = dup_coord_data$y[xy_cross_in],
+                       new_to = tiles_high_remainder),
            tiles_wide_remainder,
-           dup_coord_data$x[xy_cross_to] +
-             ((dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to]) *
-                ((tiles_high_remainder - dup_coord_data$y[xy_cross_to]) /
-                   ((dup_coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]))))
+           calc_new_to(foc_from = dup_coord_data$x[xy_cross_to],
+                       foc_old_to = dup_coord_data$x[xy_cross_in],
+                       alt_from = dup_coord_data$y[xy_cross_to],
+                       alt_old_to = dup_coord_data$y[xy_cross_in],
+                       alt_new_to = tiles_high_remainder)
     )
 
   # if it crosses the x boundary first
   # calculate y
   # otherwise y is the boundary
   trc_coord_data$y[xy_cross_in] <-
-    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_to]) /
-             (dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to]) <
-             (tiles_high_remainder - dup_coord_data$y[xy_cross_to]) /
-             (dup_coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]),
-           dup_coord_data$y[xy_cross_to] +
-             ((coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]) *
-                ((tiles_wide_remainder - dup_coord_data$x[xy_cross_to]) /
-                   ((dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to])))),
-           tiles_high_remainder)
+    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_to],
+                     old_to = dup_coord_data$x[xy_cross_in],
+                     new_to = tiles_wide_remainder) <
+             prop_dist(from = dup_coord_data$y[xy_cross_to],
+                       old_to = dup_coord_data$y[xy_cross_in],
+                       new_to = tiles_high_remainder),
+           calc_new_to(foc_from = dup_coord_data$y[xy_cross_to],
+                       foc_old_to = dup_coord_data$y[xy_cross_in],
+                       alt_from = dup_coord_data$x[xy_cross_to],
+                       alt_old_to = dup_coord_data$x[xy_cross_in],
+                       alt_new_to = tiles_wide_remainder),
+           tiles_high_remainder
+    )
+
 
   # remove points which are outside but not adjacent to one inside
   trim_trc_coord_data <- trc_coord_data[!((dup_x_out | dup_y_out) &
@@ -368,3 +380,18 @@ rect_to_poly <- function(xmin, xmax, ymin, ymax) {
     x = c(xmin, xmax, xmax, xmin, xmin, xmax)
   )
 }
+
+calc_new_to <- function(foc_from,
+                        foc_old_to,
+                        alt_from,
+                        alt_old_to,
+                        alt_new_to) {
+  foc_from + (foc_old_to - foc_from) * prop_dist(alt_from,
+                                                 alt_old_to,
+                                                 alt_new_to)
+}
+
+prop_dist <- function(from, old_to, new_to) {
+  (new_to - from) / (old_to - from)
+}
+
