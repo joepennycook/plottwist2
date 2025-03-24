@@ -84,6 +84,7 @@ drawDetails.patch <- function(x, ...) {
 
   # how many seperate lines
   n_id <- length(unique(coord_data$id))
+  n_points <- nrow(coord_data)
 
   tiles_wide_seq <- seq(tiles_wide_round) - 1
   tiles_high_seq <- seq(tiles_high_round) - 1
@@ -93,310 +94,261 @@ drawDetails.patch <- function(x, ...) {
                                           tiles_high_round * tiles_wide_round) +
                                   mm_xmin +
                                   rep(rep(tiles_wide_seq,
-                                          each = nrow(coord_data)),
+                                          each = n_points),
                                       times = tiles_high_round) * tile_width,
                                 "y" = rep(coord_data$y, tiles_high_round *
                                             tiles_wide_round) +
                                   mm_ymin +
                                   rep(tiles_high_seq,
-                                      each = nrow(coord_data) *
+                                      each = n_points *
                                         tiles_wide_round) *
                                   tile_height,
                                 "id" = rep(coord_data$id,
                                            tiles_high_round *
                                              tiles_wide_round) +
-                                  # then add a displacement based on x tiling
                                   (rep(rep(tiles_wide_seq,
-                                           each = nrow(coord_data)),
+                                           each = n_points),
                                        times = tiles_high_round) * n_id) +
                                   # then add a displacement based on y tiling
                                   (rep(tiles_high_seq,
-                                       each = nrow(coord_data) *
+                                       each = n_points *
                                          tiles_wide_round) *
                                      tiles_wide_round * n_id))
 
-  # draw most of the pattern
-  grid.polyline(x = main_coord_data$x,
-                y = main_coord_data$y,
-                id = main_coord_data$id,
-                default.units = "mm",
-                gp = gpar(col = primary_fill,
-                          lwd = x$linewidth2))
+  x_out <- coord_data$x > tiles_wide_remainder
+  y_out <- coord_data$y > tiles_high_remainder
 
-  # calculate coordinates for the right column overlap
+  # create copy of coord_data with doubled overlapping points
+  # to help with points which are both crossing out and crossing in later
+  dup_coord_data <- coord_data[rep(seq(nrow(coord_data)),
+                                   ifelse(x_out | y_out, 2, 1)), ]
 
-  rc_coord_data <- data.frame()
+  dup_x_out <- dup_coord_data$x > tiles_wide_remainder
+  dup_y_out <- dup_coord_data$y > tiles_high_remainder
 
-  for (i in 1:nrow(coord_data)) {
-    # repeat for all coordinates in pattern tile
-    if(coord_data$x[i] <= tiles_wide_remainder) {
-      # if the coordinates are inside the patch, keep them
-      rc_coord_data <- rbind(rc_coord_data, coord_data[i, ])
-    } else {
-      # but if the coordinates are outside of the patch...
-      if (i != 1) {
-        # so long as we're not looking at the first coordinate...
-        if ((coord_data$x[i - 1] <= tiles_wide_remainder) &
-            (coord_data$id[i] == coord_data$id[i - 1])) {
-          # if the previous coordinates are within the patch
-          # and part of the same line
-          # calculate the intersection of the line with the border
-          # and save the intersection as a new coordinate point
+  dup_n_points <- nrow(dup_coord_data)
 
-          xs <- coord_data$x[(i - 1):i]
-          ys <- coord_data$y[(i - 1):i]
+  # right column
 
-          new_y <- predict(lm(ys ~ xs), data.frame("xs" = tiles_wide_remainder))
+  # find coordinates which are outside but come from inside
+  x_cross_out <- c(FALSE, dup_x_out[-1] & !(dup_x_out[-dup_n_points]) &
+                     (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]))
+  x_cross_from <- c(x_cross_out[-1], FALSE)
 
-          rc_coord_data <- rbind(rc_coord_data,
-                                 data.frame("x" = tiles_wide_remainder,
-                                            "y" = new_y,
-                                            "id" = coord_data$id[i]))
-        }
-      }
+  # find coordinates which are outside but are going inside
+  x_cross_in <- c(dup_x_out[-dup_n_points] & !(dup_x_out[-1]) &
+                    (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]),
+                  FALSE)
+  x_cross_to <- c(FALSE, x_cross_in[-dup_n_points])
 
-      if (i != nrow(coord_data)) {
-        # so long as we're not looking at the last coordinate...
-        if ((coord_data$x[i + 1] <= tiles_wide_remainder) &
-            (coord_data$id[i] == coord_data$id[i + 1])) {
-          # if the next coordinates are in the patch
-          # and part of the same line
-          # calculate the intersection and save it
+  rc_coord_data <- dup_coord_data
 
-          xs <- coord_data$x[i:(i + 1)]
-          ys <- coord_data$y[i:(i + 1)]
+  rc_coord_data$x[x_cross_out] <- tiles_wide_remainder
+  rc_coord_data$y[x_cross_out] <- dup_coord_data$y[x_cross_from] +
+    ((dup_coord_data$y[x_cross_out] - dup_coord_data$y[x_cross_from]) *
+       ((tiles_wide_remainder - dup_coord_data$x[x_cross_from]) /
+          ((dup_coord_data$x[x_cross_out] - dup_coord_data$x[x_cross_from]))))
 
-          new_y <- predict(lm(ys ~ xs), data.frame("xs" = tiles_wide_remainder))
+  rc_coord_data$x[x_cross_in] <- tiles_wide_remainder
+  rc_coord_data$y[x_cross_in] <- dup_coord_data$y[x_cross_to] +
+    ((coord_data$y[x_cross_in] - dup_coord_data$y[x_cross_to]) *
+       ((tiles_wide_remainder - dup_coord_data$x[x_cross_to]) /
+          ((dup_coord_data$x[x_cross_in] - dup_coord_data$x[x_cross_to]))))
 
-          rc_coord_data <- rbind(rc_coord_data,
-                                 data.frame("x" = tiles_wide_remainder,
-                                            "y" = new_y,
-                                            "id" = coord_data$id[i]))
-        }
-      }
-    }
-  }
+  # remove points which are outside but not adjacent to one inside
+  trim_rc_coord_data <- rc_coord_data[!(dup_x_out & !x_cross_out & !x_cross_in), ]
 
-  # draw the right column of tiles
+  right_column_coord_data <- data.frame("x" = rep(trim_rc_coord_data$x,
+                                                  tiles_high_round) +
+                                          mm_xmin +
+                                          tiles_wide_round * tile_width,
+                                        "y" = rep(trim_rc_coord_data$y,
+                                                  tiles_high_round) +
+                                          mm_ymin +
+                                          rep(tiles_high_seq,
+                                              each = nrow(trim_rc_coord_data)) *
+                                          tile_height,
+                                        "id" = rep(trim_rc_coord_data$id,
+                                                   tiles_high_round) +
+                                          # then add a displacement based on x tiling
+                                          (rep(tiles_high_seq,
+                                               each = nrow(trim_rc_coord_data)) *
+                                             n_id) +
+                                          max(main_coord_data$id))
 
-  if (nrow(rc_coord_data) > 0) {
-    for (j in 1:tiles_high_round) {
-      grid.polyline(x = rc_coord_data$x + mm_xmin +
-                      (tiles_wide_round * tile_width),
-                    y = rc_coord_data$y + mm_ymin + ((j - 1) * tile_height),
-                    id = rc_coord_data$id,
-                    default.units = "mm",
-                    gp = gpar(col = primary_fill,
-                              lwd = x$linewidth2))
-    }
-  }
+  full_coord_data <- rbind(main_coord_data,
+                           right_column_coord_data)
 
-  # calculate coordinates for the top row overlap
+  # top row
 
-  tr_coord_data <- data.frame()
+  y_cross_out <- c(FALSE, dup_y_out[-1] & !(dup_y_out[-dup_n_points]) &
+                     (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]))
+  y_cross_from <- c(y_cross_out[-1], FALSE)
 
-  for (i in 1:nrow(coord_data)) {
-    # repeat for all coordinates in pattern tile
-    if(coord_data$y[i] <= tiles_high_remainder) {
-      # if the coordinates are inside the patch, keep them
-      tr_coord_data <- rbind(tr_coord_data, coord_data[i, ])
-    } else {
-      # but if the coordinates are outside of the patch...
-      if (i != 1) {
-        # so long as we're not looking at the first coordinate...
-        if ((coord_data$y[i - 1] <= tiles_high_remainder) &
-            (coord_data$id[i] == coord_data$id[i - 1])) {
-          # if the previous coordinates are within the patch
-          # and part of the same line
-          # calculate the intersection of the line with the border
-          # and save the intersection as a new coordinate point
+  # find coordinates which are outside but are going inside
+  y_cross_in <- c(dup_y_out[-dup_n_points] & !(dup_y_out[-1]) &
+                    (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]),
+                  FALSE)
+  y_cross_to <- c(FALSE, y_cross_in[-dup_n_points])
 
-          xs <- coord_data$x[(i - 1):i]
-          ys <- coord_data$y[(i - 1):i]
+  tr_coord_data <- dup_coord_data
 
-          new_x <- predict(lm(xs ~ ys), data.frame("ys" = tiles_high_remainder))
+  tr_coord_data$y[y_cross_out] <- tiles_high_remainder
+  tr_coord_data$x[y_cross_out] <- dup_coord_data$x[y_cross_from] +
+    ((dup_coord_data$x[y_cross_out] - dup_coord_data$x[y_cross_from]) *
+       ((tiles_high_remainder - dup_coord_data$y[y_cross_from]) /
+          ((dup_coord_data$y[y_cross_out] - dup_coord_data$y[y_cross_from]))))
 
-          tr_coord_data <- rbind(tr_coord_data,
-                                 data.frame("x" = new_x,
-                                            "y" = tiles_high_remainder,
-                                            "id" = coord_data$id[i]))
-        }
-      }
+  tr_coord_data$y[y_cross_in] <- tiles_high_remainder
+  tr_coord_data$x[y_cross_in] <- dup_coord_data$x[y_cross_to] +
+    ((dup_coord_data$x[y_cross_in] - dup_coord_data$x[y_cross_to]) *
+       ((tiles_high_remainder - dup_coord_data$y[y_cross_to]) /
+          ((dup_coord_data$y[y_cross_in] - dup_coord_data$y[y_cross_to]))))
 
-      if (i != nrow(coord_data)) {
-        # so long as we're not looking at the last coordinate...
-        if ((coord_data$y[i + 1] <= tiles_high_remainder) &
-            (coord_data$id[i] == coord_data$id[i + 1])) {
-          # if the next coordinates are in the patch
-          # and part of the same line
-          # calculate the intersection and save it
+  # remove points which are outside but not adjacent to one inside
+  trim_tr_coord_data <- tr_coord_data[!(dup_y_out & !y_cross_out & !y_cross_in), ]
 
-          xs <- coord_data$x[i:(i + 1)]
-          ys <- coord_data$y[i:(i + 1)]
+  top_row_coord_data <- data.frame("x" = rep(trim_tr_coord_data$x,
+                                             tiles_wide_round) +
+                                     mm_xmin +
+                                     rep(tiles_wide_seq,
+                                         each = nrow(trim_tr_coord_data)) *
+                                     tile_width,
+                                   "y" = rep(trim_tr_coord_data$y,
+                                             tiles_wide_round) +
+                                     mm_ymin +
+                                     tiles_high_round * tile_height,
+                                   "id" = rep(trim_tr_coord_data$id,
+                                              tiles_wide_round) +
+                                     (rep(tiles_wide_seq,
+                                          each = nrow(trim_tr_coord_data)) *
+                                        n_id) +
+                                     max(full_coord_data$id))
 
-          new_x <- predict(lm(xs ~ ys), data.frame("ys" = tiles_high_remainder))
-
-          tr_coord_data <- rbind(tr_coord_data,
-                                 data.frame("x" = new_x,
-                                            "y" = tiles_high_remainder,
-                                            "id" = coord_data$id[i]))
-        }
-      }
-    }
-  }
-
-  # draw the top row of tiles
-
-  if (nrow(tr_coord_data) > 0) {
-    for (i in 1:tiles_wide_round) {
-      grid.polyline(x = tr_coord_data$x + mm_xmin + ((i - 1) * tile_width),
-                    y = tr_coord_data$y + mm_ymin +
-                      (tiles_high_round * tile_height),
-                    id = tr_coord_data$id,
-                    default.units = "mm",
-                    gp = gpar(col = primary_fill,
-                              lwd = x$linewidth2))
-    }
-  }
+  full_coord_data <- rbind(full_coord_data,
+                           top_row_coord_data)
 
   # calculate coordinates for the top right corner overlap
 
-  trc_coord_data <- data.frame()
+  xy_out <- dup_x_out & dup_y_out
 
-  for (i in 1:nrow(coord_data)) {
-    # repeat for all coordinates in pattern tile
-    if(coord_data$y[i] <= tiles_high_remainder &
-       coord_data$x[i] <= tiles_wide_remainder) {
-      # if the coordinates are inside the patch, keep them
-      trc_coord_data <- rbind(trc_coord_data, coord_data[i, ])
-    } else {
-      # but if the coordinates are outside of the patch...
-      if (i != 1) {
-        # so long as we're not looking at the first coordinate...
-        if ((coord_data$y[i - 1] <= tiles_high_remainder &
-             coord_data$x[i - 1] <= tiles_wide_remainder) &
-            (coord_data$id[i] == coord_data$id[i - 1])) {
-          # if the previous coordinates are within the patch
-          # and part of the same line
-          # calculate the intersection of the line with the border
-          # and save the intersection as a new coordinate point
+  xy_cross_out <- c(FALSE, xy_out[-1] & !(xy_out[-dup_n_points]) &
+                      (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]))
+  xy_cross_from <- c(xy_cross_out[-1], FALSE)
 
-          xs <- coord_data$x[(i - 1):i]
-          ys <- coord_data$y[(i - 1):i]
+  # find coordinates which are outside but are going inside
+  xy_cross_in <- c(xy_out[-dup_n_points] & !(xy_out[-1]) &
+                     (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]),
+                   FALSE)
+  xy_cross_to <- c(FALSE, xy_cross_in[-dup_n_points])
 
-          if (xs[1] == xs[2]) {
-            # if the line is parallel to the y axis
-            trc_coord_data <- rbind(trc_coord_data,
-                                    data.frame("x" = c(xs[1],
-                                                       tiles_wide_remainder),
-                                               "y" = rep(tiles_high_remainder,
-                                                         2),
-                                               "id" = rep(coord_data$id[i], 2)))
-          } else if (ys[1] == ys[2]) {
-            # or if the line is parallel to the x axis
-            trc_coord_data <- rbind(trc_coord_data,
-                                    data.frame("x" = rep(tiles_wide_remainder,
-                                                         2),
-                                               "y" = c(ys[1],
-                                                       tiles_high_remainder),
-                                               "id" = rep(coord_data$id[i], 2)))
-          } else {
-            # otherwise figure out which line is shorter
-            new_x <- predict(lm(xs ~ ys),
-                             data.frame("ys" = tiles_high_remainder))
-            new_y <- predict(lm(ys ~ xs),
-                             data.frame("xs" = tiles_wide_remainder))
+  trc_coord_data <- dup_coord_data
 
-            dist_high <- (((xs[1] - new_x) ^ 2) +
-                            ((ys[1] - tiles_high_remainder) ^ 2)) ^ 0.5
-            dist_wide <- (((xs[1] - tiles_wide_remainder) ^ 2) +
-                            ((ys[1] - new_y) ^ 2)) ^ 0.5
+  # copy in the rows which only cross one boundary
+  # remember to trim the easy ones later
+  trc_coord_data[x_cross_out | x_cross_in, ] <-
+    rc_coord_data[x_cross_out | x_cross_in, ]
 
-            if (dist_high <= dist_wide) {
-              trc_coord_data <- rbind(trc_coord_data,
-                                      data.frame("x" = c(new_x,
-                                                         tiles_wide_remainder),
-                                                 "y" = rep(tiles_high_remainder,
-                                                           2),
-                                                 "id" = rep(coord_data$id[i],
-                                                            2)))
-            } else {
-              trc_coord_data <- rbind(trc_coord_data,
-                                      data.frame("x" = rep(tiles_wide_remainder,
-                                                           2),
-                                                 "y" = c(new_y,
-                                                         tiles_high_remainder),
-                                                 "id" = rep(coord_data$id[i],
-                                                            2)))
-            }
-          }
-        }
-      }
+  trc_coord_data[y_cross_out | y_cross_in, ] <-
+    tr_coord_data[y_cross_out | y_cross_in, ]
 
-      if (i != nrow(coord_data)) {
-        # so long as we're not looking at the last coordinate...
-        if ((coord_data$y[i + 1] <= tiles_high_remainder &
-             coord_data$x[i + 1] <= tiles_wide_remainder) &
-            (coord_data$id[i] == coord_data$id[i + 1])) {
-          # if the next coordinates are in the patch
-          # and part of the same line
-          # calculate the intersection and save it
+  ## might stop here for the evening
+  # i am looking at a point inside the corner
+  # and I know it crosses out of the corner,
+  # but I don't know which boundary it crosses first
+  # if I knew which boundary it crosses most extremely is that the same thing?
 
-          xs <- coord_data$x[i:(i + 1)]
-          ys <- coord_data$y[i:(i + 1)]
+  # I'm getting somewhere but I have to take a break
 
-          if (xs[1] == xs[2]) {
-            # if the line is parallel to the y axis
-            trc_coord_data <- rbind(trc_coord_data,
-                                    data.frame("x" = xs[1],
-                                               "y" = tiles_high_remainder,
-                                               "id" = coord_data$id[i]))
-          } else if (ys[1] == ys[2]) {
-            # or if the line is parallel to the x axis
-            trc_coord_data <- rbind(trc_coord_data,
-                                    data.frame("x" = tiles_wide_remainder,
-                                               "y" = ys[1],
-                                               "id" = coord_data$id[i]))
-          } else {
-            new_x <- predict(lm(xs ~ ys),
-                             data.frame("ys" = tiles_high_remainder))
-            new_y <- predict(lm(ys ~ xs),
-                             data.frame("xs" = tiles_wide_remainder))
+  # if it crosses x boundary first
+  # x is the just the boundary
+  # otherwise calculate it
+  trc_coord_data$x[xy_cross_out] <-
+    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_from]) /
+             (dup_coord_data$x[xy_cross_out] - dup_coord_data$x[xy_cross_from]) <
+             (tiles_high_remainder - dup_coord_data$y[xy_cross_from]) /
+             (dup_coord_data$y[xy_cross_out] - dup_coord_data$y[xy_cross_from]),
+           tiles_wide_remainder,
+           dup_coord_data$x[xy_cross_from] +
+             ((dup_coord_data$x[xy_cross_out] - dup_coord_data$x[xy_cross_from]) *
+                ((tiles_high_remainder - dup_coord_data$y[xy_cross_from]) /
+                   ((dup_coord_data$y[xy_cross_out] - dup_coord_data$y[xy_cross_from]))))
+    )
 
-            dist_high <- (((xs[2] - new_x) ^ 2) +
-                            ((ys[2] - tiles_high_remainder) ^ 2)) ^ 0.5
-            dist_wide <- (((xs[2] - tiles_wide_remainder) ^ 2) +
-                            ((ys[2] - new_y) ^ 2)) ^ 0.5
+  # if it crosses the x boundary first
+  # calculate y
+  # otherwise y is the boundary
+  trc_coord_data$y[xy_cross_out] <-
+    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_from]) /
+             (dup_coord_data$x[xy_cross_out] - dup_coord_data$x[xy_cross_from]) <
+             (tiles_high_remainder - dup_coord_data$y[xy_cross_from]) /
+             (dup_coord_data$y[xy_cross_out] - dup_coord_data$y[xy_cross_from]),
+           dup_coord_data$y[x_cross_from] +
+             ((dup_coord_data$y[x_cross_out] - dup_coord_data$y[x_cross_from]) *
+                ((tiles_wide_remainder - dup_coord_data$x[x_cross_from]) /
+                   ((dup_coord_data$x[x_cross_out] - dup_coord_data$x[x_cross_from])))),
+           tiles_high_remainder)
 
-            if (dist_high <= dist_wide) {
-              trc_coord_data <- rbind(trc_coord_data,
-                                      data.frame("x" = new_x,
-                                                 "y" = tiles_high_remainder,
-                                                 "id" = coord_data$id[i]))
-            } else {
-              trc_coord_data <- rbind(trc_coord_data,
-                                      data.frame("x" = tiles_wide_remainder,
-                                                 "y" = new_y,
-                                                 "id" = coord_data$id[i]))
-            }
-          }
-        }
-      }
-    }
-  }
+  # if it crosses x boundary first
+  # x is the just the boundary
+  # otherwise calculate it
+  trc_coord_data$x[xy_cross_in] <-
+    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_to]) /
+             (dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to]) <
+             (tiles_high_remainder - dup_coord_data$y[xy_cross_to]) /
+             (dup_coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]),
+           tiles_wide_remainder,
+           dup_coord_data$x[xy_cross_to] +
+             ((dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to]) *
+                ((tiles_high_remainder - dup_coord_data$y[xy_cross_to]) /
+                   ((dup_coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]))))
+    )
 
-  # draw the final partial tile
+  # if it crosses the x boundary first
+  # calculate y
+  # otherwise y is the boundary
+  trc_coord_data$y[xy_cross_in] <-
+    ifelse((tiles_wide_remainder - dup_coord_data$x[xy_cross_to]) /
+             (dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to]) <
+             (tiles_high_remainder - dup_coord_data$y[xy_cross_to]) /
+             (dup_coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]),
+           dup_coord_data$y[xy_cross_to] +
+             ((coord_data$y[xy_cross_in] - dup_coord_data$y[xy_cross_to]) *
+                ((tiles_wide_remainder - dup_coord_data$x[xy_cross_to]) /
+                   ((dup_coord_data$x[xy_cross_in] - dup_coord_data$x[xy_cross_to])))),
+           tiles_high_remainder)
 
-  if (nrow(trc_coord_data) > 0) {
-    grid.polyline(x = trc_coord_data$x + mm_xmin +
-                    (tiles_wide_round * tile_width),
-                  y = trc_coord_data$y + mm_ymin +
-                    (tiles_high_round * tile_height),
-                  id = trc_coord_data$id,
-                  default.units = "mm",
-                  gp = gpar(col = primary_fill,
-                            lwd = x$linewidth2))
-  }
+  # remove points which are outside but not adjacent to one inside
+  trim_trc_coord_data <- trc_coord_data[!((dup_x_out | dup_y_out) &
+                                            !y_cross_out & !y_cross_in &
+                                            !x_cross_out & !x_cross_in), ]
+
+  trim_trc_coord_data$x <- trim_trc_coord_data$x + mm_xmin +
+    tiles_wide_round * tile_width
+  trim_trc_coord_data$y <- trim_trc_coord_data$y + mm_ymin +
+    tiles_high_round * tile_height
+
+  trim_trc_coord_data$id <- trim_trc_coord_data$id + max(full_coord_data$id)
+
+  # I'm probably leaving in a bug where the line will cut across the top right corner in some circumstances
+  # I'd like to split apart the id of any cases where this would be an issue
+  # I think it's situations where a line crosses over the x then back over the y
+  # or vice versa
+  # best just to split the ids of any adjacent outs and backs
+
+  # also with hex I see an overlap in the top right
+  # something about my code to figure out which axis is being crossed isn't working
+  # might be a perpendicular line issue?
+
+  full_coord_data <- rbind(full_coord_data,
+                           trim_trc_coord_data)
+
+  grid.polyline(x = full_coord_data$x,
+                y = full_coord_data$y,
+                id = full_coord_data$id,
+                default.units = "mm",
+                gp = gpar(col = primary_fill,
+                          lwd = x$linewidth2))
 
   # draw a final outline around the patch
 
