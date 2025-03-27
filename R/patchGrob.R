@@ -109,7 +109,6 @@ drawDetails.patch <- function(x, ...) {
                                   (rep(rep(tiles_wide_seq,
                                            each = n_points),
                                        times = tiles_high_round) * n_id) +
-                                  # then add a displacement based on y tiling
                                   (rep(tiles_high_seq,
                                        each = n_points *
                                          tiles_wide_round) *
@@ -234,13 +233,14 @@ drawDetails.patch <- function(x, ...) {
   # calculate coordinates for the top right corner overlap
 
   xy_out <- dup_x_out & dup_y_out
+  xy_in <- !(dup_x_out | dup_y_out)
 
-  xy_cross_out <- c(FALSE, xy_out[-1] & !(xy_out[-dup_n_points]) &
+  xy_cross_out <- c(FALSE, xy_out[-1] & xy_in[-dup_n_points] &
                       (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]))
   xy_cross_from <- c(xy_cross_out[-1], FALSE)
 
   # find coordinates which are outside but are going inside
-  xy_cross_in <- c(xy_out[-dup_n_points] & !(xy_out[-1]) &
+  xy_cross_in <- c(xy_out[-dup_n_points] & xy_in[-1] &
                      (dup_coord_data$id[-1] == dup_coord_data$id[-dup_n_points]),
                    FALSE)
   xy_cross_to <- c(FALSE, xy_cross_in[-dup_n_points])
@@ -255,16 +255,18 @@ drawDetails.patch <- function(x, ...) {
   trc_coord_data[y_cross_out | y_cross_in, ] <-
     tr_coord_data[y_cross_out | y_cross_in, ]
 
+  out_xy_dist <- prop_dist(from = dup_coord_data$x[xy_cross_from],
+                           old_to = dup_coord_data$x[xy_cross_out],
+                           new_to = tiles_wide_remainder) <
+    prop_dist(from = dup_coord_data$y[xy_cross_from],
+              old_to = dup_coord_data$y[xy_cross_out],
+              new_to = tiles_high_remainder)
+
   # if it crosses x boundary first
   # x is the just the boundary
   # otherwise calculate it
   trc_coord_data$x[xy_cross_out] <-
-    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_from],
-                     old_to = dup_coord_data$x[xy_cross_out],
-                     new_to = tiles_wide_remainder) <
-             prop_dist(from = dup_coord_data$y[xy_cross_from],
-                       old_to = dup_coord_data$y[xy_cross_out],
-                       new_to = tiles_high_remainder),
+    ifelse(out_xy_dist,
            tiles_wide_remainder,
            calc_new_to(foc_from = dup_coord_data$x[xy_cross_from],
                        foc_old_to = dup_coord_data$x[xy_cross_out],
@@ -278,12 +280,7 @@ drawDetails.patch <- function(x, ...) {
   # otherwise y is the boundary
 
   trc_coord_data$y[xy_cross_out] <-
-    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_from],
-                     old_to = dup_coord_data$x[xy_cross_out],
-                     new_to = tiles_wide_remainder) <
-             prop_dist(from = dup_coord_data$y[xy_cross_from],
-                       old_to = dup_coord_data$y[xy_cross_out],
-                       new_to = tiles_high_remainder),
+    ifelse(out_xy_dist,
            calc_new_to(foc_from = dup_coord_data$y[xy_cross_from],
                        foc_old_to = dup_coord_data$y[xy_cross_out],
                        alt_from = dup_coord_data$x[xy_cross_from],
@@ -296,13 +293,15 @@ drawDetails.patch <- function(x, ...) {
   # x is the just the boundary
   # otherwise calculate it
 
+  in_xy_dist <- prop_dist(from = dup_coord_data$x[xy_cross_to],
+                          old_to = dup_coord_data$x[xy_cross_in],
+                          new_to = tiles_wide_remainder) <
+    prop_dist(from = dup_coord_data$y[xy_cross_to],
+              old_to = dup_coord_data$y[xy_cross_in],
+              new_to = tiles_high_remainder)
+
   trc_coord_data$x[xy_cross_in] <-
-    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_to],
-                     old_to = dup_coord_data$x[xy_cross_in],
-                     new_to = tiles_wide_remainder) <
-             prop_dist(from = dup_coord_data$y[xy_cross_to],
-                       old_to = dup_coord_data$y[xy_cross_in],
-                       new_to = tiles_high_remainder),
+    ifelse(in_xy_dist,
            tiles_wide_remainder,
            calc_new_to(foc_from = dup_coord_data$x[xy_cross_to],
                        foc_old_to = dup_coord_data$x[xy_cross_in],
@@ -315,12 +314,7 @@ drawDetails.patch <- function(x, ...) {
   # calculate y
   # otherwise y is the boundary
   trc_coord_data$y[xy_cross_in] <-
-    ifelse(prop_dist(from = dup_coord_data$x[xy_cross_to],
-                     old_to = dup_coord_data$x[xy_cross_in],
-                     new_to = tiles_wide_remainder) <
-             prop_dist(from = dup_coord_data$y[xy_cross_to],
-                       old_to = dup_coord_data$y[xy_cross_in],
-                       new_to = tiles_high_remainder),
+    ifelse(in_xy_dist,
            calc_new_to(foc_from = dup_coord_data$y[xy_cross_to],
                        foc_old_to = dup_coord_data$y[xy_cross_in],
                        alt_from = dup_coord_data$x[xy_cross_to],
@@ -329,18 +323,39 @@ drawDetails.patch <- function(x, ...) {
            tiles_high_remainder
     )
 
+  trc_coord_data[x_cross_out | y_cross_out | xy_cross_out, ]
+  rep(seq(nrow(trc_coord_data)),
+      ifelse(x_cross_out | y_cross_out | xy_cross_out,
+             2, 1))
+
+  any_out <- x_cross_out |
+          y_cross_out |
+          xy_cross_out
+
+  dup_trc_coord_data <- trc_coord_data[rep(seq(nrow(trc_coord_data)),
+                                           ifelse(any_out,
+                                                  2, 1)), ]
+
+  extra_corners <- (which(any_out) + seq(from = 0,
+                                         to = sum(any_out) - 1)) + 1
+
+  dup_trc_coord_data$x[extra_corners] <- tiles_wide_remainder
+  dup_trc_coord_data$y[extra_corners] <- tiles_high_remainder
 
   # remove points which are outside but not adjacent to one inside
-  trim_trc_coord_data <- trc_coord_data[!((dup_x_out | dup_y_out) &
-                                            !y_cross_out & !y_cross_in &
-                                            !x_cross_out & !x_cross_in), ]
+  trim_trc_coord_data <- dup_trc_coord_data[!(dup_trc_coord_data$x >
+                                            tiles_wide_remainder |
+                                              dup_trc_coord_data$y >
+                                            tiles_high_remainder), ]
 
-  trim_trc_coord_data$x <- trim_trc_coord_data$x + mm_xmin +
+  top_right_corner_coord_data <- trim_trc_coord_data
+
+  top_right_corner_coord_data$x <- trim_trc_coord_data$x + mm_xmin +
     tiles_wide_round * tile_width
-  trim_trc_coord_data$y <- trim_trc_coord_data$y + mm_ymin +
+  top_right_corner_coord_data$y <- trim_trc_coord_data$y + mm_ymin +
     tiles_high_round * tile_height
 
-  trim_trc_coord_data$id <- trim_trc_coord_data$id + max(full_coord_data$id)
+  top_right_corner_coord_data$id <- trim_trc_coord_data$id + max(full_coord_data$id)
 
   # I'm probably leaving in a bug where the line will cut across the top right corner in some circumstances
   # I'd like to split apart the id of any cases where this would be an issue
@@ -353,7 +368,7 @@ drawDetails.patch <- function(x, ...) {
   # might be a perpendicular line issue?
 
   full_coord_data <- rbind(full_coord_data,
-                           trim_trc_coord_data)
+                           top_right_corner_coord_data)
 
   grid.polyline(x = full_coord_data$x,
                 y = full_coord_data$y,
@@ -394,4 +409,5 @@ calc_new_to <- function(foc_from,
 prop_dist <- function(from, old_to, new_to) {
   (new_to - from) / (old_to - from)
 }
+
 
