@@ -303,7 +303,7 @@ assemble_patch <- function(tile, width, height) {
 
 lay_tiles <- function(tile, width, height) {
   n_tiles <- width * height
-  max_id <- max(tile$id)
+  max_id <- suppressWarnings(max(tile$id))
 
   x_index <- rep(rep(seq(width) - 1,
                      each = nrow(tile)),
