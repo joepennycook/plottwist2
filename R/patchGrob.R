@@ -71,19 +71,40 @@ drawDetails.patch <- function(x, ...) {
   tiles_wide <- (mm_xmax - mm_xmin) / tile_width
   tiles_high <- (mm_ymax - mm_ymin) / tile_height
 
-  # extrapolate pattern coordinates across the size of the patch
-  pattern_coords <- assemble_patch(as.data.frame(pattern_details[1:3]),
-                                   tiles_wide, tiles_high)
-  pattern_coords$x <- (pattern_coords$x * tile_width) + mm_xmin
-  pattern_coords$y <- (pattern_coords$y * tile_height) + mm_ymin
+  if(!is.null(pattern_details[[1]])) {
+    # extrapolate pattern coordinates across the size of the patch
+    pattern_coords <- assemble_patch(as.data.frame(pattern_details[1:3]),
+                                     tiles_wide, tiles_high)
+    pattern_coords$x <- (pattern_coords$x * tile_width) + mm_xmin
+    pattern_coords$y <- (pattern_coords$y * tile_height) + mm_ymin
 
-  # draw pattern
-  grid.polyline(x = pattern_coords$x,
-                y = pattern_coords$y,
-                id = pattern_coords$id,
-                default.units = "mm",
-                gp = gpar(col = primary_fill,
-                          lwd = x$linewidth2))
+    # draw pattern
+    grid.polyline(x = pattern_coords$x,
+                  y = pattern_coords$y,
+                  id = pattern_coords$id,
+                  default.units = "mm",
+                  gp = gpar(col = primary_fill,
+                            lwd = x$linewidth2))
+  }
+
+  if(!is.null(pattern_details[[4]])) {
+    # extrapolate solid coordinates across the size of the patch
+    solid_data <- as.data.frame(pattern_details[4:6])
+    colnames(solid_data) <- c("x", "y", "id")
+    solid_coords <- assemble_patch(solid_data,
+                                   tiles_wide, tiles_high)
+    solid_coords$x <- (solid_coords$x * tile_width) + mm_xmin
+    solid_coords$y <- (solid_coords$y * tile_height) + mm_ymin
+
+    # draw solids
+    grid.polygon(x = solid_coords$x,
+                 y = solid_coords$y,
+                 id = solid_coords$id,
+                 default.units = "mm",
+                 gp = gpar(col = primary_fill,
+                           fill = primary_fill,
+                           lwd = x$linewidth2))
+  }
 
   # draw border
   grid.polygon(x = polymap$x,
@@ -99,6 +120,7 @@ calc_new_to <- function(foc_from,
                         alt_from,
                         alt_old_to,
                         alt_new_to) {
+
   foc_from + (foc_old_to - foc_from) * prop_dist(alt_from,
                                                  alt_old_to,
                                                  alt_new_to)
@@ -128,11 +150,10 @@ assemble_patch <- function(tile, width, height) {
   # we sometimes need the first to be the point crossing out of the patch
   # we sometimes need the last to be the point crossing back in
   # we sometimes need the middle to define the corner of the patch
-  # excess will be trimmed
   tile_rep <- tile[rep(seq(nrow(tile)),
                        ifelse(tile$x > wide_fraction |
                                 tile$y > high_fraction,
-                              3, 1)), ]
+                              3, 2)), ]
   rep_n <- nrow(tile_rep)
 
   ## map out the right column of tiles
