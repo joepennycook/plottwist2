@@ -101,7 +101,7 @@ drawDetails.patch <- function(x, ...) {
                  y = solid_coords$y,
                  id = solid_coords$id,
                  default.units = "mm",
-                 gp = gpar(col = primary_fill,
+                 gp = gpar(col = "#00000000",
                            fill = primary_fill,
                            lwd = x$linewidth2))
   }
