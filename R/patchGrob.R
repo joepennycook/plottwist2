@@ -586,7 +586,6 @@ assemble_patch <- function(tile, width, height) {
   top_right_corner$y <- top_right_corner$y + high_round
   top_right_corner$id <- top_right_corner$id + id_max
 
-
   # combine into a single data frame
   rbind(main_body,
         right_column,
@@ -597,7 +596,7 @@ assemble_patch <- function(tile, width, height) {
 
 lay_tiles <- function(tile, width, height) {
   n_tiles <- width * height
-  n_id <- length(unique(tile$id))
+  max_id <- max(tile$id)
 
   x_index <- rep(rep(seq(width) - 1,
                      each = nrow(tile)),
@@ -608,7 +607,7 @@ lay_tiles <- function(tile, width, height) {
   data.frame("x" = rep(tile$x, n_tiles) + x_index,
              "y" = rep(tile$y, n_tiles) + y_index,
              "id" = rep(tile$id, n_tiles) +
-               x_index * n_id +
-               y_index * width * n_id
+               x_index * max_id +
+               y_index * width * max_id
   )
 }
