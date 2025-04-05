@@ -42,14 +42,15 @@ geom_patch <- function(mapping = NULL, data = NULL,
 
 GeomPatch <- ggproto("GeomPatch", Geom,
                      default_aes = aes(colour = "black",
-                                       fill2 = "white",
+                                       pattern_background = "white",
                                        linewidth = 1.42,
                                        linetype = 1,
                                        alpha = NA,
                                        pattern = 1,
-                                       size = 1.5,
+                                       pattern_scale = 1,
                                        fill = "black",
-                                       linewidth2 = 1.42),
+                                       pattern_linewidth = 1.42,
+                                       fill_outline = FALSE),
 
                      required_aes = c("xmin", "xmax", "ymin", "ymax"),
 
@@ -70,12 +71,13 @@ GeomPatch <- ggproto("GeomPatch", Geom,
                                    ymax = unit(coords$ymax[i_pattern],
                                                "native"),
                                    pattern = coords$pattern[i_pattern],
-                                   size = coords$size[i_pattern],
+                                   pattern_scale = coords$pattern_scale[i_pattern],
                                    colour = coords$colour[i_pattern],
-                                   linewidth = coords$colour[i_pattern],
-                                   fill2 = coords$fill2[i_pattern],
-                                   linewidth2 = coords$linewidth2[i_pattern],
-                                   fill = coords$fill[i_pattern])
+                                   linewidth = coords$linewidth[i_pattern],
+                                   pattern_background = coords$pattern_background[i_pattern],
+                                   pattern_linewidth = coords$pattern_linewidth[i_pattern],
+                                   fill = coords$fill[i_pattern],
+                                   fill_outline = coords$fill_outline[i_pattern])
                        })
 
                        do.call(grobTree, grob_list)

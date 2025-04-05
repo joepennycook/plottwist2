@@ -6,13 +6,14 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
                       xmax = unit(0.8, "npc"),
                       ymin = unit(0.2, "npc"),
                       ymax = unit(0.8, "npc"),
-                      size = 3,
+                      pattern_scale = 1,
                       linewidth = 1,
-                      linewidth2 = 1,
+                      pattern_linewidth = 1,
                       pattern = 1,
                       fill = "black",
-                      fill2 = "white",
+                      pattern_background = "white",
                       colour = "black",
+                      fill_outline = FALSE,
                       name = NULL,
                       gp = NULL,
                       vp = NULL) {
@@ -22,12 +23,13 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
        ymin = ymin,
        ymax = ymax,
        pattern = pattern,
-       size = size,
+       pattern_scale = pattern_scale,
        linewidth = linewidth,
-       linewidth2 = linewidth2,
+       pattern_linewidth = pattern_linewidth,
        fill = fill,
-       fill2 = fill2,
+       pattern_background = pattern_background,
        colour = colour,
+       fill_outline = fill_outline,
        name = name,
        gp = gp,
        vp = vp,
@@ -46,9 +48,9 @@ drawDetails.patch <- function(x, ...) {
 
   # fill colour
   primary_fill <- ifelse(pattern_details$invert,
-                         x$fill2, x$fill)
+                         x$pattern_background, x$fill)
   secondary_fill <- ifelse(pattern_details$invert,
-                         x$fill, x$fill2)
+                         x$fill, x$pattern_background)
 
   # convert from xmin etc. to the relevant polygon coordinates
   polymap <- data.frame(
@@ -61,33 +63,22 @@ drawDetails.patch <- function(x, ...) {
                y = polymap$y,
                default.units = "mm",
                gp = gpar(fill = secondary_fill,
-                         colour = x$colour,
-                         linewidth = x$linewidth))
+                         col = x$colour,
+                         lwd = x$linewidth))
 
   # figure out the size of each tile and how many fit on each patch
-  tile_height <- x$size * pattern_details$scale
-  tile_width <- x$size * pattern_details$scale * pattern_details$ratio
+  pattern_scale <- x$pattern_scale * 1.875
+  tile_height <- pattern_scale * pattern_details$scale
+  tile_width <- pattern_scale * pattern_details$scale * pattern_details$ratio
 
   tiles_wide <- (mm_xmax - mm_xmin) / tile_width
   tiles_high <- (mm_ymax - mm_ymin) / tile_height
 
-  if(!is.null(pattern_details[[1]])) {
-    # extrapolate pattern coordinates across the size of the patch
-    pattern_coords <- assemble_patch(as.data.frame(pattern_details[1:3]),
-                                     tiles_wide, tiles_high)
-    pattern_coords$x <- (pattern_coords$x * tile_width) + mm_xmin
-    pattern_coords$y <- (pattern_coords$y * tile_height) + mm_ymin
+  draw_solid <- (!is.null(pattern_details[[4]]))
+  draw_line <- (!is.null(pattern_details[[1]]) &
+                  (!draw_solid | x$fill_outline == TRUE))
 
-    # draw pattern
-    grid.polyline(x = pattern_coords$x,
-                  y = pattern_coords$y,
-                  id = pattern_coords$id,
-                  default.units = "mm",
-                  gp = gpar(col = primary_fill,
-                            lwd = x$linewidth2))
-  }
-
-  if(!is.null(pattern_details[[4]])) {
+  if(draw_solid) {
     # extrapolate solid coordinates across the size of the patch
     solid_data <- as.data.frame(pattern_details[4:6])
     colnames(solid_data) <- c("x", "y", "id")
@@ -103,7 +94,23 @@ drawDetails.patch <- function(x, ...) {
                  default.units = "mm",
                  gp = gpar(col = "#00000000",
                            fill = primary_fill,
-                           lwd = x$linewidth2))
+                           lwd = x$pattern_linewidth))
+  }
+
+  if(draw_line) {
+    # extrapolate pattern coordinates across the size of the patch
+    pattern_coords <- assemble_patch(as.data.frame(pattern_details[1:3]),
+                                     tiles_wide, tiles_high)
+    pattern_coords$x <- (pattern_coords$x * tile_width) + mm_xmin
+    pattern_coords$y <- (pattern_coords$y * tile_height) + mm_ymin
+
+    # draw pattern
+    grid.polyline(x = pattern_coords$x,
+                  y = pattern_coords$y,
+                  id = pattern_coords$id,
+                  default.units = "mm",
+                  gp = gpar(col = primary_fill,
+                            lwd = x$pattern_linewidth))
   }
 
   # draw border
@@ -111,8 +118,8 @@ drawDetails.patch <- function(x, ...) {
                y = polymap$y,
                default.units = "mm",
                gp = gpar(fill = "#00000000",
-                         colour = x$colour,
-                         linewidth = x$linewidth))
+                         col = x$colour,
+                         lwd = x$linewidth))
 }
 
 calc_new_to <- function(foc_from,
