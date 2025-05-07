@@ -40,6 +40,20 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
 drawDetails.patch <- function(x, ...) {
   pattern_details <- pattern_lookup[[x$pattern]]
 
+  # sort out pattern aesthetic details
+  pattern <- x$pattern
+
+  # extract symbol details according to data type
+  if (class(pattern) != "character") {
+    pattern_details <- pattern_lookup[[pattern]]
+  } else if (grepl("pattern_", pattern)) {
+    pattern_details <- pattern_recipe_to_list(pattern)
+  } else if (pattern %in% names(pattern_lookup)) {
+    pattern_details <- pattern_lookup[[pattern]]
+  } else {
+    stop("pattern values not recognised")
+  }
+
   # bounds of patch
   mm_xmin <- convertX(x$xmin, "mm", valueOnly = TRUE)
   mm_xmax <- convertX(x$xmax, "mm", valueOnly = TRUE)
@@ -74,9 +88,13 @@ drawDetails.patch <- function(x, ...) {
   tiles_wide <- (mm_xmax - mm_xmin) / tile_width
   tiles_high <- (mm_ymax - mm_ymin) / tile_height
 
-  draw_solid <- (!is.null(pattern_details[[4]]))
-  draw_line <- (!is.null(pattern_details[[1]]) &
+  print(pattern_details)
+
+  draw_solid <- (!is.na(pattern_details[[4]][1]))
+  draw_line <- (!is.na(pattern_details[[1]][1]) &
                   (!draw_solid | x$fill_outline == TRUE))
+
+  print(draw_line)
 
   if(draw_solid) {
     # extrapolate solid coordinates across the size of the patch
