@@ -88,13 +88,9 @@ drawDetails.patch <- function(x, ...) {
   tiles_wide <- (mm_xmax - mm_xmin) / tile_width
   tiles_high <- (mm_ymax - mm_ymin) / tile_height
 
-  print(pattern_details)
-
   draw_solid <- (!is.na(pattern_details[[4]][1]))
   draw_line <- (!is.na(pattern_details[[1]][1]) &
                   (!draw_solid | x$fill_outline == TRUE))
-
-  print(draw_line)
 
   if(draw_solid) {
     # extrapolate solid coordinates across the size of the patch
