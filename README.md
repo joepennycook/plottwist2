@@ -60,10 +60,13 @@ ggplot(data.frame("x" = rep(1, 40),
         panel.background = element_blank())
 ```
 
-<img src="man/figures/README-symbols-1.png" width="100%" />
+<img src="man/figures/README-symbols-1.png" width="40%" height="40%" />
 
 A range of patterns can be selected by supplying numeric values to the
-`pattern` aesthetic.
+`pattern` aesthetic. Beyond the 64 options shown below, the same
+patterns are repeated on a smaller scale under labels 65-128, on a
+larger scale under labels 128-192, then patterns at all scales are
+repeated with the colours inverted under labels 193-384.
 
 ``` r
 library(ggplot2)
@@ -82,4 +85,4 @@ ggplot(data.frame("x" = rep(c(0, 1), 64),
         panel.background = element_blank())
 ```
 
-<img src="man/figures/README-patterns-1.png" width="100%" />
+<img src="man/figures/README-patterns-1.png" width="60%" />

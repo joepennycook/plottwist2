@@ -46,7 +46,7 @@ ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length)) +
 ```
 A range of symbols can be selected by supplying numeric values to the `symbol` aesthetic.
 
-```{r symbols}
+```{r symbols, fig.width = 3, fig.height = 3, out.width = "40%", out.height = "40%"}
 library(ggplot2)
 library(plottwist2)
 
@@ -65,9 +65,9 @@ ggplot(data.frame("x" = rep(1, 40),
         panel.background = element_blank())
 ```
 
-A range of patterns can be selected by supplying numeric values to the `pattern` aesthetic.
+A range of patterns can be selected by supplying numeric values to the `pattern` aesthetic. Beyond the 64 options shown below, the same patterns are repeated on a smaller scale under labels 65-128, on a larger scale under labels 128-192, then patterns at all scales are repeated with the colours inverted under labels 193-384.
 
-```{r patterns}
+```{r patterns, fig.width = 4, fig.height = 5.8, fig.align = "centre", out.width = "60%"}
 library(ggplot2)
 library(plottwist2)
 
