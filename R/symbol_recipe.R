@@ -14,7 +14,7 @@
 #'
 #' @examples
 symbol_recipe <- function(x, y, id = NA) {
-  if (is.na(id)) {
+  if (is.na(id[1])) {
     id <- rep(1, length(x))
   }
 
