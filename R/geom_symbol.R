@@ -59,7 +59,7 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                    } else if (symbol %in% names(symbol_lookup)) {
                                      symbol_details <- symbol_lookup[[symbol]]
                                    } else {
-                                     stop("symbol values not recognised")
+                                     stop("Symbol values not recognised, Consider supplying data to the symbol aesthetic as a factor.")
                                    }
 
                                    if (head(symbol_details$x, 1) == tail(symbol_details$x, 1) &

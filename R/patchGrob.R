@@ -51,7 +51,7 @@ drawDetails.patch <- function(x, ...) {
   } else if (pattern %in% names(pattern_lookup)) {
     pattern_details <- pattern_lookup[[pattern]]
   } else {
-    stop("pattern values not recognised")
+    stop("Pattern values not recognised. Consider supplying data to the pattern aesthetic as a factor.")
   }
 
   # bounds of patch
