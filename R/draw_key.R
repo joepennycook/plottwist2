@@ -15,12 +15,12 @@ draw_key_patch <- function(data, params, size) {
             ymin = unit(0.1, "npc"),
             ymax = unit(0.9, "npc"),
             pattern = data$pattern %||% 1,
-            size = data$size %||% 3,
+            pattern_scale = data$pattern_scale %||% 1.42,
             fill = data$fill %||% "black",
-            linewidth2 = data$linewidth2 %||% 1.42,
-            fill2 = data$fill2 %||% "white",
+            pattern_linewidth = data$linewidth2 %||% 1.42,
+            pattern_background = data$pattern_background %||% "white",
             colour = data$colour %||% "black",
-            linewidth = data$linewidth %||% 1.42)
+            linewidth = data$linewidth %||% 1)
 }
 
 #' @export
