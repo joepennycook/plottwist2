@@ -13,7 +13,6 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
                       fill = "black",
                       pattern_background = "white",
                       colour = "black",
-                      fill_outline = FALSE,
                       name = NULL,
                       gp = NULL,
                       vp = NULL) {
@@ -29,7 +28,6 @@ patchGrob <- function(xmin = unit(0.2, "npc"),
        fill = fill,
        pattern_background = pattern_background,
        colour = colour,
-       fill_outline = fill_outline,
        name = name,
        gp = gp,
        vp = vp,
@@ -90,7 +88,11 @@ drawDetails.patch <- function(x, ...) {
 
   draw_solid <- (!is.na(pattern_details[[4]][1]))
   draw_line <- (!is.na(pattern_details[[1]][1]) &
-                  (!draw_solid | x$fill_outline == TRUE))
+                  (!draw_solid | TRUE))
+
+  # if I want to replace 'fill_outline' as an aesthetic to decide if the filled
+  # shapes also have lines, replace 'TRUE' above with 'x$fill_outline == TRUE'
+  # then of course replace 'fill_outline' in the normal places
 
   if(draw_solid) {
     # extrapolate solid coordinates across the size of the patch

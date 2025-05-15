@@ -49,8 +49,7 @@ GeomPatch <- ggproto("GeomPatch", Geom,
                                        pattern = 1,
                                        pattern_scale = 1,
                                        fill = "black",
-                                       pattern_linewidth = 1.42,
-                                       fill_outline = FALSE),
+                                       pattern_linewidth = 1.42),
 
                      required_aes = c("xmin", "xmax", "ymin", "ymax"),
 
@@ -76,8 +75,7 @@ GeomPatch <- ggproto("GeomPatch", Geom,
                                    linewidth = coords$linewidth[i_pattern],
                                    pattern_background = coords$pattern_background[i_pattern],
                                    pattern_linewidth = coords$pattern_linewidth[i_pattern],
-                                   fill = coords$fill[i_pattern],
-                                   fill_outline = coords$fill_outline[i_pattern])
+                                   fill = coords$fill[i_pattern])
                        })
 
                        do.call(grobTree, grob_list)
