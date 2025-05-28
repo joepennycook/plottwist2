@@ -32,13 +32,20 @@ scale_pattern_manual <- function (..., values, breaks = waiver(), na.value = NA)
 #' @rdname scale_manual_plottwist2
 #' @import ggplot2
 #' @export
-scale_p_colour_manual <- function (..., values, breaks = waiver(), na.value = NA) {
-  manual_scale("p_colour", values, breaks, ..., na.value = na.value)
+scale_pattern_background_manual <- function (..., values, breaks = waiver(), na.value = NA) {
+  manual_scale("pattern_background", values, breaks, ..., na.value = na.value)
 }
 
 #' @rdname scale_manual_plottwist2
 #' @import ggplot2
 #' @export
-scale_p_linewidth_manual <- function (..., values, breaks = waiver(), na.value = NA) {
-  manual_scale("p_linewidth", values, breaks, ..., na.value = na.value)
+scale_pattern_linewidth_manual <- function (..., values, breaks = waiver(), na.value = NA) {
+  manual_scale("pattern_linewidth", values, breaks, ..., na.value = na.value)
+}
+
+#' @rdname scale_manual_plottwist2
+#' @import ggplot2
+#' @export
+scale_pattern_scale_manual <- function (..., values, breaks = waiver(), na.value = NA) {
+  manual_scale("pattern_scale", values, breaks, ..., na.value = na.value)
 }

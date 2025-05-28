@@ -4,17 +4,20 @@
 \alias{scale_manual_plottwist2}
 \alias{scale_symbol_manual}
 \alias{scale_pattern_manual}
-\alias{scale_p_colour_manual}
-\alias{scale_p_linewidth_manual}
+\alias{scale_pattern_background_manual}
+\alias{scale_pattern_linewidth_manual}
+\alias{scale_pattern_scale_manual}
 \title{Create more discrete scales}
 \usage{
 scale_symbol_manual(..., values, breaks = waiver(), na.value = NA)
 
 scale_pattern_manual(..., values, breaks = waiver(), na.value = NA)
 
-scale_p_colour_manual(..., values, breaks = waiver(), na.value = NA)
+scale_pattern_background_manual(..., values, breaks = waiver(), na.value = NA)
 
-scale_p_linewidth_manual(..., values, breaks = waiver(), na.value = NA)
+scale_pattern_linewidth_manual(..., values, breaks = waiver(), na.value = NA)
+
+scale_pattern_scale_manual(..., values, breaks = waiver(), na.value = NA)
 }
 \arguments{
 \item{...}{

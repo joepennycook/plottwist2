@@ -41,8 +41,8 @@ scale_pattern <- function(name = waiver(), ..., aesthetics = "pattern") {
 scale_pattern_discrete <- scale_pattern
 
 pal_pattern <- function(n) {
-  if (n <= 282) {
-    c(c(c(1, 11, 3, 14, 9, 4, 13,
+  if (n <= 196) {
+    c(c(c(11, 3, 14, 9, 4, 13,
           38, 5, 24, 27, 39, 8, 20, 25,
           12, 2, 16, 34, 18, 32, 35, 22,
           28, 40, 15, 19, 30, 37,
@@ -74,6 +74,84 @@ pal_pattern <- function(n) {
           12, 16, 34, 18, 32, 35, 22,
           28, 40, 15, 19, 30, 37) + 128) + 192)
   } else {
-    warn("More than 197 symbols requested. Consider specifying patterns manually.")
+    warn("More than 196 symbols requested. Consider specifying patterns manually.")
   }
 }
+
+#' @export
+scale_pattern_background_discrete <- function(name = waiver(), ...,
+                                              aesthetics = "pattern_background",
+                                              palette = pal_pattern_background) {
+  discrete_scale(aesthetics, name = name, palette = pal_pattern_background)
+}
+
+pal_pattern_background <- function(n) {
+  seq(n) + 1
+}
+
+#' @import scales
+#' @export
+scale_pattern_background_continuous <- function (name = waiver(), breaks = waiver(), labels = waiver(),
+                                                limits = NULL, range = c(1, 6), transform = "identity", trans = deprecated(),
+                                                guide = "legend")
+{
+
+  continuous_scale("pattern_background", palette = pal_rescale(range),
+                   name = name, breaks = breaks, labels = labels, limits = limits,
+                   transform = transform, trans = trans, guide = guide)
+}
+
+
+#' @import scales
+#' @export
+scale_pattern_linewidth_continuous <- function (name = waiver(), breaks = waiver(), labels = waiver(),
+                                                limits = NULL, range = c(1, 6), transform = "identity", trans = deprecated(),
+                                                guide = "legend")
+{
+
+  continuous_scale("pattern_linewidth", palette = pal_rescale(range),
+                   name = name, breaks = breaks, labels = labels, limits = limits,
+                   transform = transform, trans = trans, guide = guide)
+}
+
+#' @export
+scale_pattern_linewidth <- scale_pattern_linewidth_continuous
+
+#' @export
+scale_pattern_linewidth_ordinal <- function (name = waiver(), ..., range = c(2, 6))
+{
+  force(range)
+  discrete_scale("pattern_linewidth", name = name, palette = function(n) seq(range[1],
+                                                                     range[2], length.out = n), ...)
+}
+
+#' @import scales
+#' @export
+scale_pattern_scale_continuous <- function (name = waiver(), breaks = waiver(), labels = waiver(),
+                                                limits = NULL, range = c(1, 6), transform = "identity", trans = deprecated(),
+                                                guide = "legend")
+{
+  continuous_scale("pattern_scale", palette = pal_rescale(range),
+                   name = name, breaks = breaks, labels = labels, limits = limits,
+                   transform = transform, trans = trans, guide = guide)
+}
+
+#' @export
+scale_pattern_scale <- scale_pattern_scale_continuous
+
+#' @export
+scale_pattern_scale_ordinal <- function (name = waiver(), ..., range = c(2, 6))
+{
+  force(range)
+  discrete_scale("pattern_scale", name = name, palette = function(n) seq(range[1],
+                                                                             range[2], length.out = n), ...)
+}
+
+deprecated <- function ()
+{
+  rlang::missing_arg()
+}
+
+# on github it looks like the way ggplot2 handles this kind of stuff is
+# changing soon. I'm not going to try too hard to include binned, ordinal etc
+# scales right now, and I will look into it more when things change.

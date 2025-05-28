@@ -929,12 +929,14 @@ pattern_lookup <- list("empty" = list("x" = NA,
                                      "ratio" = 1,
                                      "invert" = FALSE))
 
+# repeat patterns on small scale
 small_patterns <- lapply(pattern_lookup, function(x) {
   x$scale <- x$scale * 0.6
   x
 })
 names(small_patterns) <- paste(names(pattern_lookup), "small", sep = "_")
 
+# repeat patterns on large scale
 large_patterns <- lapply(pattern_lookup, function(x) {
   x$scale <- x$scale * 1.4
   x
@@ -943,6 +945,7 @@ names(large_patterns) <- paste(names(pattern_lookup), "large", sep = "_")
 
 pattern_lookup <- c(pattern_lookup, small_patterns, large_patterns)
 
+# repeat patterns with inverted colours
 invert_patterns <- lapply(pattern_lookup, function(x) {
   x$invert <- TRUE
   x
