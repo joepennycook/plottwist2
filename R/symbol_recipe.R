@@ -8,7 +8,7 @@
 #' @param id A numeric vector used to separate locations in x and y into
 #' multiple lines. All locations with the same `id` belong to the same line.
 #'
-#' @returns An string which can be passed to `geom_symbol()` or
+#' @returns A string which can be passed to `geom_symbol()` or
 #' `geom_symbolswarm()` to be interpreted.
 #' @export
 #'

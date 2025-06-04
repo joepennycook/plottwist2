@@ -40,8 +40,8 @@ draw_key_symbol <- function(data, params, size) {
     stop("symbol values not recognised")
   }
 
-  if (head(symbol_details$x, 1) == tail(symbol_details$x, 1) &
-      head(symbol_details$y, 1) == tail(symbol_details$y, 1)) {
+  if (utils::head(symbol_details$x, 1) == utils::tail(symbol_details$x, 1) &
+      utils::head(symbol_details$y, 1) == utils::tail(symbol_details$y, 1)) {
     geom_output <- polygonGrob(x = unit(0.5, "npc") +
                                  unit(symbol_details$x * data$size, "mm"),
                                y = unit(0.5, "npc") +

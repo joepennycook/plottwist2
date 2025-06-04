@@ -1,9 +1,15 @@
 #' Points with a Wider Variety of Shapes
 #'
-#' The symbol geom is used for the same purposes as [geom_point()], but with
-#' more flexibility in the shapes of the points.
+#' The symbol geom is primarily used to create scatterplots in the same way as
+#' \link[ggplot2]{ggplot2::geom_point()}, but allows for more flexibility in the
+#' shape of the points.
 #'
-#' Custom symbol shapes can be defined using `symbol_recipe()`.
+#' The 'symbol' aesthetic is used to define the shape of points. Numeric values
+#' between `1` and `40` supplied to the symbol aesthetic will select from a
+#' range of shapes. Character values such as `"triangle"`, `"hollow_diamond"`,
+#' `"hexagon_cross"` or `"octogon_zigzag"` will also select shapes.
+#'
+#' Custom shapes can be defined using \link{symbol_recipe()}.
 #'
 #' @inheritParams ggplot2::geom_point
 #'

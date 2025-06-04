@@ -15,7 +15,7 @@ symbol_recipe(x, y, id = NA)
 multiple lines. All locations with the same \code{id} belong to the same line.}
 }
 \value{
-An string which can be passed to \code{geom_symbol()} or
+A string which can be passed to \code{geom_symbol()} or
 \code{geom_symbolswarm()} to be interpreted.
 }
 \description{

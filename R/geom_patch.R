@@ -1,14 +1,10 @@
-#' Title
+#' Rectangles with Texture
 #'
-#' @param mapping
-#' @param data
-#' @param stat
-#' @param position
-#' @param ...
-#' @param linejoin
-#' @param na.rm
-#' @param show.legend
-#' @param inherit.aes
+#' Based on the locations of the four corners (`xmin`, `xmax`, `ymin`, and
+#' `ymax`), `geom_patch` creates a rectangle with a texture according to the
+#' `pattern` aesthetic, as described in \link{geom_pattern()}.
+#'
+#' @inheritParams ggplot2::geom_bar
 #'
 #' @returns
 #' @import ggplot2

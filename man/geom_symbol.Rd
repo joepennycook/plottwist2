@@ -105,9 +105,15 @@ that define both data and aesthetics and shouldn't inherit behaviour from
 the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
 }
 \description{
-The symbol geom is used for the same purposes as \code{\link[=geom_point]{geom_point()}}, but with
-more flexibility in the shapes of the points.
+The symbol geom is primarily used to create scatterplots in the same way as
+\link[ggplot2]{ggplot2::geom_point()}, but allows for more flexibility in the
+shape of the points.
 }
 \details{
-Custom symbol shapes can be defined using \code{symbol_recipe()}.
+The 'symbol' aesthetic is used to define the shape of points. Numeric values
+between \code{1} and \code{40} supplied to the symbol aesthetic will select from a
+range of shapes. Character values such as \code{"triangle"}, \code{"hollow_diamond"},
+\code{"hexagon_cross"} or \code{"octogon_zigzag"} will also select shapes.
+
+Custom shapes can be defined using \link{symbol_recipe()}.
 }

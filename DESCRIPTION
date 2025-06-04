@@ -15,6 +15,7 @@ Imports:
     grid,
     rlang,
     scales,
+    utils,
     vctrs,
     vdiffr
 Suggests: 

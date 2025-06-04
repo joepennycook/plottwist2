@@ -1,16 +1,19 @@
-#' Title
+#' Bars with a Variety of Textures
 #'
-#' @param mapping
-#' @param data
-#' @param stat
-#' @param position
-#' @param ...
-#' @param just
-#' @param width
-#' @param na.rm
-#' @param orientation
-#' @param show.legend
-#' @param inherit.aes
+#' The pattern geom is primarily used to create bar charts in the same way as
+#' \link[ggplot2]{ggplot2::geom_bar()}, but allowing for bars to be filled with
+#' textures.
+#'
+#' The `pattern` aesthetic is used to define the texture of bars. Numeric values
+#' between `1` and `64` will select from a range of patterns, then values
+#' between `65` and `128` select the same range of patterns at a smaller scale,
+#' values between `129` and `192` select the same range of patterns at a larger
+#' scale, then `193` to `384` select for the same range of patterns with line
+#' colours and background colours swapped.
+#'
+#' Custom patterns can be defined using `pattern_recipe()`
+#'
+#' @inheritParams ggplot2::geom_bar
 #'
 #' @returns
 #' @import ggplot2
