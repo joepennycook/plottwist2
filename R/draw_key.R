@@ -30,7 +30,7 @@ draw_key_symbol <- function(data, params, size) {
   symbol <- data$symbol
 
   # extract symbol details according to data type
-  if (class(symbol) != "character") {
+  if (!is.character(symbol)) {
     symbol_details <- symbol_lookup[[symbol]]
   } else if (grepl("symbol_", symbol)) {
     symbol_details <- symbol_recipe_to_list(symbol)

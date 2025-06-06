@@ -58,7 +58,7 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                    symbol <- coords$symbol[i_symbol]
 
                                    # extract symbol details according to data type
-                                   if (class(symbol) != "character") {
+                                   if (!is.character(symbol)) {
                                      symbol_details <- symbol_lookup[[symbol]]
                                    } else if (grepl("symbol_", symbol)) {
                                      symbol_details <- symbol_recipe_to_list(symbol)

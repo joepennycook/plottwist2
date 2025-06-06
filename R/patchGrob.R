@@ -42,7 +42,7 @@ drawDetails.patch <- function(x, ...) {
   pattern <- x$pattern
 
   # extract symbol details according to data type
-  if (class(pattern) != "character") {
+  if (!is.character(pattern)) {
     pattern_details <- pattern_lookup[[pattern]]
   } else if (grepl("pattern_", pattern)) {
     pattern_details <- pattern_recipe_to_list(pattern)
