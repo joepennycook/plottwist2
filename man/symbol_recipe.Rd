@@ -4,7 +4,7 @@
 \alias{symbol_recipe}
 \title{Define new symbol}
 \usage{
-symbol_recipe(x, y, id = NA)
+symbol_recipe(x, y, id = NA, solid = FALSE)
 }
 \arguments{
 \item{x}{A numeric vector specifying x values.}

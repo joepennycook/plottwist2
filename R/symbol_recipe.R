@@ -13,7 +13,9 @@
 #' @export
 #'
 #' @examples
-symbol_recipe <- function(x, y, id = NA, solid = FALSE) {
+symbol_recipe <- function(x, y, id = NA,
+                          solid_x = NA, solid_y = NA, solid_id = NA,
+                          autofill = FALSE) {
   if (is.na(id[1])) {
     id <- rep(1, length(x))
   }
@@ -26,11 +28,6 @@ symbol_recipe <- function(x, y, id = NA, solid = FALSE) {
     stop("id is not the same length as the coordinates.")
   }
 
-  if (length(solid) != 1 |
-      class(solid) != "logical") {
-    stop("'solid' aesthetic is not logical or length = 1")
-  }
-
   paste0("symbol_",
          paste(x, collapse = ","),
          "_",
@@ -38,7 +35,13 @@ symbol_recipe <- function(x, y, id = NA, solid = FALSE) {
          "_",
          paste(id, collapse = ","),
          "_",
-         paste(solid))
+         paste(solid_x, collapse = ","),
+         "_",
+         paste(solid_y, collapse = ","),
+         "_",
+         paste(solid_id, collapse = ","),
+         "_",
+         paste(autofill))
 }
 
 symbol_recipe_to_list <- function(recipe) {
@@ -52,7 +55,10 @@ symbol_recipe_to_list <- function(recipe) {
   list("x" = as.numeric(split_recipe[[2]]),
        "y" = as.numeric(split_recipe[[3]]),
        "id" = as.numeric(split_recipe[[4]]),
-       "solid" = as.logical(split_recipe[[5]]))
+       "solid_x" = as.numeric(split_recipe[[5]]),
+       "solid_y" = as.numeric(split_recipe[[6]]),
+       "solid_id" = as.numeric(split_recipe[[7]]),
+       "autofill" = as.logical(split_recipe[[8]]))
 }
 
 pattern_recipe <- function(x, y, id = NA,
