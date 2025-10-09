@@ -45,7 +45,7 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                required_aes = c("x", "y"),
                                non_missing_aes = c("size", "symbol", "colour"),
                                default_aes = aes(
-                                 symbol = 1, colour = "black", size = 1.5, fill = NA,
+                                 symbol = 1, colour = "black", size = 1.5, fill = "#FFFFFF00",
                                  alpha = NA, stroke = 1.42),
 
                                # the function to draw symbols placed according to 'x', 'y', and 'symbol' aesthetics
@@ -68,6 +68,12 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                      stop("Symbol values not recognised, Consider supplying data to the symbol aesthetic as a factor.")
                                    }
 
+                                   if (symbol_details$solid == TRUE) {
+                                     fill_value <- alpha(coords$colour[i_symbol], coords$alpha[i_symbol])
+                                   } else {
+                                     fill_value <- alpha(coords$fill[i_symbol], coords$alpha[i_symbol])
+                                   }
+
                                    if (head(symbol_details$x, 1) == tail(symbol_details$x, 1) &
                                        head(symbol_details$y, 1) == tail(symbol_details$y, 1)) {
 
@@ -78,7 +84,7 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                                                 y = unit(coords$y[i_symbol], "native") +
                                                                   unit(symbol_details$y * coords$size[i_symbol], "mm"),
                                                                 gp = gpar(col = alpha(coords$colour[i_symbol], coords$alpha[i_symbol]),
-                                                                          fill = alpha(coords$fill[i_symbol], coords$alpha[i_symbol]),
+                                                                          fill = fill_value,
                                                                           lwd = coords$stroke[i_symbol]))
                                    } else {
 
