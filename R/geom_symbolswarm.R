@@ -16,7 +16,7 @@
 #' @param beeswarmArgs
 #' @param na.rm
 #' @param show.legend
-#' @param inherit.aes
+#' @param inherit.aes test
 #'
 #' @returns
 #' @export

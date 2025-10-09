@@ -110,7 +110,7 @@ the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
 }
 \description{
 The pattern geom is primarily used to create bar charts in the same way as
-\link[ggplot2]{ggplot2::geom_bar()}, but allow for bars to be filled with
+\link[ggplot2]{ggplot2::geom_bar()}, but allowing for bars to be filled with
 textures.
 }
 \details{

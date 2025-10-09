@@ -25,7 +25,7 @@ geom_symbolswarm(
 )
 }
 \arguments{
-\item{inherit.aes}{}
+\item{inherit.aes}{test}
 }
 \description{
 Title
