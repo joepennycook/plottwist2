@@ -41,23 +41,21 @@ draw_key_symbol <- function(data, params, size) {
   }
 
   if (symbol_details$autofill == TRUE) {
-    fill_value <- alpha(coords$colour[i_symbol], coords$alpha[i_symbol])
+    fill_value <- alpha(data$colour, data$alpha)
   } else {
-    fill_value <- alpha(coords$fill[i_symbol], coords$alpha[i_symbol])
+    fill_value <- alpha(data$fill, data$alpha)
   }
-
-  grobs_output <- list()
 
   # if there are coordinates to draw the filled shape
   # add that to the output
   if (!is.na(symbol_details$solid_x[1])) {
-    grob_fill <- polygonGrob(x = unit(coords$x[i_symbol], "native") +
-                               unit(symbol_details$solid_x * coords$size[i_symbol], "mm"),
-                             y = unit(coords$y[i_symbol], "native") +
-                               unit(symbol_details$solid_y * coords$size[i_symbol], "mm"),
+    grob_fill <- polygonGrob(x = unit(0.5, "npc") +
+                               unit(symbol_details$solid_x * data$size, "mm"),
+                             y = unit(0.5, "npc") +
+                               unit(symbol_details$solid_y * data$size, "mm"),
                              gp = gpar(col = "#FFFFFF00",
                                        fill = fill_value,
-                                       lwd = coords$stroke[i_symbol]))
+                                       lwd = data$stroke))
   } else {
     grob_fill <- polygonGrob(x = c(0), y = c(0))
   }
@@ -65,13 +63,13 @@ draw_key_symbol <- function(data, params, size) {
   # if there are coordinates to draw the outline
   # add that to the output
   if (!is.na(symbol_details$x[1])) {
-    grob_line <- polylineGrob(x = unit(coords$x[i_symbol], "native") +
-                                unit(symbol_details$x * coords$size[i_symbol], "mm"),
-                              y = unit(coords$y[i_symbol], "native") +
-                                unit(symbol_details$y * coords$size[i_symbol], "mm"),
+    grob_line <- polylineGrob(x = unit(0.5, "npc") +
+                                unit(symbol_details$x * data$size, "mm"),
+                              y = unit(0.5, "npc") +
+                                unit(symbol_details$y * data$size, "mm"),
                               id = symbol_details$id,
-                              gp = gpar(col = alpha(coords$colour[i_symbol], coords$alpha[i_symbol]),
-                                        lwd = coords$stroke[i_symbol]))
+                              gp = gpar(col = alpha(data$colour, data$alpha),
+                                        lwd = data$stroke))
   } else {
     grob_line <- polylineGrob(x = c(0), y = c(0))
   }
@@ -79,3 +77,7 @@ draw_key_symbol <- function(data, params, size) {
   # output each individual data point symbol
   grobTree(grob_fill, grob_line)
 }
+
+##
+
+

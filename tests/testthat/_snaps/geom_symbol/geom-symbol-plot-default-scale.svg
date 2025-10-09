@@ -349,11 +349,14 @@
 <rect x='654.10' y='250.36' width='60.42' height='67.17' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
 <text x='654.10' y='259.07' style='font-size: 11.00px; font-family: sans;' textLength='39.14px' lengthAdjust='spacingAndGlyphs'>Species</text>
 <rect x='654.10' y='265.69' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<polygon points='658.49,274.33 662.74,278.59 666.99,274.33 662.74,270.08 658.49,274.33 ' style='stroke-width: 1.06; fill: none;' />
+<polygon points='658.49,274.33 662.74,278.59 666.99,274.33 662.74,270.08 658.49,274.33 ' style='stroke-width: 1.06; stroke: none; fill: none;' />
+<polyline points='658.49,274.33 662.74,278.59 666.99,274.33 662.74,270.08 658.49,274.33 ' style='stroke-width: 1.06;' />
 <rect x='654.10' y='282.97' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<polygon points='659.02,293.80 666.46,293.80 662.74,287.36 659.02,293.80 ' style='stroke-width: 1.06; fill: none;' />
+<polygon points='659.02,293.80 666.46,293.80 662.74,287.36 659.02,293.80 ' style='stroke-width: 1.06; stroke: none; fill: none;' />
+<polyline points='659.02,293.80 666.46,293.80 662.74,287.36 659.02,293.80 ' style='stroke-width: 1.06;' />
 <rect x='654.10' y='300.25' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<polygon points='662.74,304.64 665.74,305.89 666.99,308.89 665.74,311.90 662.74,313.15 659.73,311.90 658.49,308.89 659.73,305.89 662.74,304.64 ' style='stroke-width: 1.06; fill: none;' />
+<polygon points='662.74,304.64 665.74,305.89 666.99,308.89 665.74,311.90 662.74,313.15 659.73,311.90 658.49,308.89 659.73,305.89 662.74,304.64 ' style='stroke-width: 1.06; stroke: none; fill: none;' />
+<polyline points='662.74,304.64 665.74,305.89 666.99,308.89 665.74,311.90 662.74,313.15 659.73,311.90 658.49,308.89 659.73,305.89 662.74,304.64 ' style='stroke-width: 1.06;' />
 <text x='676.86' y='277.36' style='font-size: 8.80px; font-family: sans;' textLength='25.94px' lengthAdjust='spacingAndGlyphs'>setosa</text>
 <text x='676.86' y='294.64' style='font-size: 8.80px; font-family: sans;' textLength='37.66px' lengthAdjust='spacingAndGlyphs'>versicolor</text>
 <text x='676.86' y='311.92' style='font-size: 8.80px; font-family: sans;' textLength='32.28px' lengthAdjust='spacingAndGlyphs'>virginica</text>
