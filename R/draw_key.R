@@ -37,29 +37,45 @@ draw_key_symbol <- function(data, params, size) {
   } else if (symbol %in% names(symbol_lookup)) {
     symbol_details <- symbol_lookup[[symbol]]
   } else {
-    stop("symbol values not recognised")
+    stop("Symbol values not recognised, Consider supplying data to the symbol aesthetic as a factor.")
   }
 
-  if (utils::head(symbol_details$x, 1) == utils::tail(symbol_details$x, 1) &
-      utils::head(symbol_details$y, 1) == utils::tail(symbol_details$y, 1)) {
-    geom_output <- polygonGrob(x = unit(0.5, "npc") +
-                                 unit(symbol_details$x * data$size, "mm"),
-                               y = unit(0.5, "npc") +
-                                 unit(symbol_details$y * data$size, "mm"),
-                               gp = gpar(col = alpha(data$colour %||% "black",
-                                                     data$alpha),
-                                         fill = alpha(data$fill %||% "black",
-                                                      data$alpha),
-                                         lwd = data$stroke %||% 0.5))
+  if (symbol_details$autofill == TRUE) {
+    fill_value <- alpha(coords$colour[i_symbol], coords$alpha[i_symbol])
   } else {
-    geom_output <- polylineGrob(x = unit(0.5, "npc") +
-                                  unit(symbol_details$x * data$size, "mm"),
-                                y = unit(0.5, "npc") +
-                                  unit(symbol_details$y * data$size, "mm"),
-                                id = symbol_details$id,
-                                gp = gpar(col = alpha(data$colour %||% "black",
-                                                      data$alpha),
-                                          lwd = data$stroke %||% 0.5))
+    fill_value <- alpha(coords$fill[i_symbol], coords$alpha[i_symbol])
   }
-  geom_output
+
+  grobs_output <- list()
+
+  # if there are coordinates to draw the filled shape
+  # add that to the output
+  if (!is.na(symbol_details$solid_x[1])) {
+    grob_fill <- polygonGrob(x = unit(coords$x[i_symbol], "native") +
+                               unit(symbol_details$solid_x * coords$size[i_symbol], "mm"),
+                             y = unit(coords$y[i_symbol], "native") +
+                               unit(symbol_details$solid_y * coords$size[i_symbol], "mm"),
+                             gp = gpar(col = "#FFFFFF00",
+                                       fill = fill_value,
+                                       lwd = coords$stroke[i_symbol]))
+  } else {
+    grob_fill <- polygonGrob(x = c(0), y = c(0))
+  }
+
+  # if there are coordinates to draw the outline
+  # add that to the output
+  if (!is.na(symbol_details$x[1])) {
+    grob_line <- polylineGrob(x = unit(coords$x[i_symbol], "native") +
+                                unit(symbol_details$x * coords$size[i_symbol], "mm"),
+                              y = unit(coords$y[i_symbol], "native") +
+                                unit(symbol_details$y * coords$size[i_symbol], "mm"),
+                              id = symbol_details$id,
+                              gp = gpar(col = alpha(coords$colour[i_symbol], coords$alpha[i_symbol]),
+                                        lwd = coords$stroke[i_symbol]))
+  } else {
+    grob_line <- polylineGrob(x = c(0), y = c(0))
+  }
+
+  # output each individual data point symbol
+  grobTree(grob_fill, grob_line)
 }

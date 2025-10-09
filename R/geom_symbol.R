@@ -108,7 +108,6 @@ GeomSymbol <- ggplot2::ggproto("GeomSymbol", Geom,
                                    grobTree(grob_fill, grob_line)
                                  })
 
-
                                  # collect all the symbols into a single grob with grobTree
                                  do.call(grobTree, grob_list)
                                },
