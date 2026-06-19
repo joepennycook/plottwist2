@@ -1,0 +1,21 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: plottwist2
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Joseph
+    family-names: Pennycook
+repository-code: 'https://github.com/joepennycook/plottwist2'
+abstract: >-
+  plottwist2 contains several functions to speed up the
+  creation of neat plots with ggplot2 and expand
+  functionality. In particular, geom_symbol() and
+  geom_pattern() are intended to reduce reliance on colour
+  for distinguishing between groups, by adding a wider
+  variety of point shapes and bar textures respectively.
+license: MIT
